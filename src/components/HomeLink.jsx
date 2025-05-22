@@ -2,8 +2,16 @@
 
 import Link from 'next/link'
 import { Home } from 'lucide-react'
+import useIsPWA from '@/hooks/useIsPWA'
 
 export default function HomeLink() {
+  const isPWA = useIsPWA();
+
+  // Don't render the component at all in PWA mode
+  if (isPWA) {
+    return null;
+  }
+
   return (
     <div className="absolute top-4 left-4 z-10">
       <Link

@@ -13,6 +13,12 @@ export const metadata = {
   formatDetection: {
     telephone: false,
   },
+  // Apple web app configuration
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Clickit & Getin',
+  },
 }
 
 export const viewport = {
@@ -21,12 +27,6 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-}
-
-export const appleWebApp = {
-  capable: true,
-  statusBarStyle: 'default',
-  title: 'Clickit & Getin',
 }
 
 export default function RootLayout({ children }) {
