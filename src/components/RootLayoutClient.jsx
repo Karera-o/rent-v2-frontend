@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import BottomNavigation from '@/components/BottomNavigation'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { Toaster } from '@/components/ui/toaster'
 import GoogleAuthProvider from '@/components/GoogleAuthProvider'
@@ -20,9 +19,8 @@ export default function RootLayoutClient({ children }) {
     <GoogleAuthProvider>
       <AuthProvider>
         {shouldShowNavAndFooter && <Navbar />}
-        <main className="mb-16 lg:mb-0">{children}</main>
+        <main>{children}</main>
         {shouldShowNavAndFooter && <Footer />}
-        <BottomNavigation />
         <Toaster />
         <PWAInstallPrompt />
       </AuthProvider>

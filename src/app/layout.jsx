@@ -1,7 +1,6 @@
 import { Inter } from 'next/font/google'
 import './globals.css'
 import '../styles/fix-circle.css'
-import '../styles/mobile-navigation.css'
 import './globals-override.css'
 import RootLayoutClient from '@/components/RootLayoutClient'
 
