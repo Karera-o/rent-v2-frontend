@@ -5,6 +5,7 @@ import useIsPWA from '@/hooks/useIsPWA';
 import useUserRole from '@/hooks/useUserRole';
 import BottomNavigation from '@/components/BottomNavigation';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import ContextFAB from '@/components/ContextFAB';
 
 /**
  * PWA Layout component that conditionally wraps content with bottom navigation
@@ -25,6 +26,9 @@ export default function PWALayout({ children }) {
   const showStandardNav = isPWA && !isDashboard && !shouldHideBottomNav;
   const showRoleBasedNav = isPWA && isDashboard && !shouldHideBottomNav;
 
+  // Determine if we should show the FAB
+  const showFAB = isPWA && !shouldHideBottomNav;
+
   return (
     <>
       <div className={isPWA && (showStandardNav || showRoleBasedNav) ? 'pwa-content pb-16' : ''}>
@@ -33,6 +37,7 @@ export default function PWALayout({ children }) {
 
       {showStandardNav && <BottomNavigation />}
       {showRoleBasedNav && <RoleBasedBottomNav userRole={role} />}
+      {showFAB && <ContextFAB />}
     </>
   );
 }

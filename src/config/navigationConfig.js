@@ -50,10 +50,9 @@ export const navigationConfig = {
     bottomTabs: [
       { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard/landlord' },
       { id: 'my-properties', icon: 'properties', label: 'Properties', path: '/dashboard/landlord/properties' },
-      { id: 'bookings', icon: 'bookings', label: 'Bookings', path: '/dashboard/landlord/bookings' },
-      { id: 'account', icon: 'account', label: 'Account', path: '/dashboard/landlord/account' }
+      { id: 'bookings', icon: 'bookings', label: 'Bookings', path: '/dashboard/landlord/bookings' }
     ],
-    accountItems: [
+    fabItems: [
       { id: 'profile', icon: 'profile', label: 'Profile', path: '/dashboard/landlord/profile' },
       { id: 'payments', icon: 'payments', label: 'Payments', path: '/dashboard/landlord/payments' },
       { id: 'verification-documents', icon: 'verification-documents', label: 'Verification', path: '/dashboard/landlord/documents' },
@@ -66,10 +65,9 @@ export const navigationConfig = {
       { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard/admin' },
       { id: 'users', icon: 'users', label: 'Users', path: '/dashboard/admin/users' },
       { id: 'properties', icon: 'properties', label: 'Properties', path: '/dashboard/admin/properties' },
-      { id: 'bookings', icon: 'bookings', label: 'Bookings', path: '/dashboard/admin/bookings' },
-      { id: 'more', icon: 'more', label: 'More', path: '/dashboard/admin/more' }
+      { id: 'bookings', icon: 'bookings', label: 'Bookings', path: '/dashboard/admin/bookings' }
     ],
-    moreItems: [
+    fabItems: [
       { id: 'payments', icon: 'payments', label: 'Payments', path: '/dashboard/admin/payments' },
       { id: 'verification-documents', icon: 'verification-documents', label: 'Verification', path: '/dashboard/admin/documents' },
       { id: 'settings', icon: 'settings', label: 'Settings', path: '/dashboard/admin/settings' },
@@ -81,10 +79,9 @@ export const navigationConfig = {
     bottomTabs: [
       { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard/user' },
       { id: 'bookings', icon: 'bookings', label: 'Bookings', path: '/dashboard/user/bookings' },
-      { id: 'saved-properties', icon: 'saved-properties', label: 'Saved', path: '/dashboard/user/favorites' },
-      { id: 'account', icon: 'account', label: 'Account', path: '/dashboard/user/account' }
+      { id: 'saved-properties', icon: 'saved-properties', label: 'Saved', path: '/dashboard/user/favorites' }
     ],
-    accountItems: [
+    fabItems: [
       { id: 'profile', icon: 'profile', label: 'Profile', path: '/dashboard/user/profile' },
       { id: 'settings', icon: 'settings', label: 'Settings', path: '/dashboard/user/settings' },
       { id: 'logout', icon: 'logout', label: 'Logout', path: '/logout' }
@@ -100,7 +97,7 @@ export const navigationConfig = {
 export function getNavigationConfig(role) {
   // Map API roles to our internal role constants
   let mappedRole;
-  
+
   if (role === 'agent' || role === 'landlord') {
     mappedRole = USER_ROLES.LANDLORD;
   } else if (role === 'admin') {
@@ -109,7 +106,7 @@ export function getNavigationConfig(role) {
     // Default to tenant/user
     mappedRole = USER_ROLES.TENANT;
   }
-  
+
   return navigationConfig[mappedRole] || navigationConfig[USER_ROLES.TENANT];
 }
 

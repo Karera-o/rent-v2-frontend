@@ -7,12 +7,12 @@ import NextDynamic from 'next/dynamic';
 export const dynamic = 'force-dynamic';
 
 // Dynamically import the client component with no SSR
-const PWATestContent = NextDynamic(() => import('./PWATestContent'), {
+const FabTestContent = NextDynamic(() => import('./FabTestContent'), {
   ssr: false,
   loading: () => <div className="p-4">Loading test page...</div>
 });
 
-export default function DashboardPWATestPage() {
+export default function FabTestPage() {
   return (
     <div className="container-responsive py-8">
       <div className="mb-6">
@@ -23,7 +23,7 @@ export default function DashboardPWATestPage() {
       </div>
 
       <Suspense fallback={<div className="p-4">Loading test page...</div>}>
-        <PWATestContent />
+        <FabTestContent />
       </Suspense>
     </div>
   );
