@@ -5,8 +5,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button.jsx'
 import { Menu, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-const Navbar = () => {
+const Navbar = ({ className }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const toggleMenu = () => {
@@ -14,7 +15,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className={cn("bg-white shadow-sm sticky top-0 z-50", className)}>
       <div className="container-responsive">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -25,7 +26,7 @@ const Navbar = () => {
               <Link href="/" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 border-b-2 border-transparent hover:border-[#111827] hover:text-[#111827]">
                 Home
               </Link>
-              
+
               <Link href="/properties" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:border-[#111827] hover:text-[#111827]">
                 Properties
               </Link>

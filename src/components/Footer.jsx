@@ -1,8 +1,9 @@
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
-const Footer = () => {
+const Footer = ({ className }) => {
   return (
-    <footer className="relative bg-gradient-to-b from-[#111827] to-[#1f2937] text-white">
+    <footer className={cn("relative bg-gradient-to-b from-[#111827] to-[#1f2937] text-white", className)}>
       {/* Decorative overlay */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 opacity-10">
@@ -40,14 +41,14 @@ const Footer = () => {
               </a>
             </div>
           </div>
-          
+
           {/* Quick Links */}
           <div>
             <h3 className="text-lg font-bold mb-6 text-gray-200">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/" 
+                <Link
+                  href="/"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -59,8 +60,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/properties" 
+                <Link
+                  href="/properties"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -72,8 +73,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/about" 
+                <Link
+                  href="/about"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -85,8 +86,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/contact" 
+                <Link
+                  href="/contact"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -99,14 +100,14 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          
+
           {/* Property Types */}
           <div>
             <h3 className="text-lg font-bold mb-6 text-gray-200">Property Types</h3>
             <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/properties?type=apartment" 
+                <Link
+                  href="/properties?type=apartment"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -118,8 +119,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/properties?type=house" 
+                <Link
+                  href="/properties?type=house"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -131,8 +132,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  href="/properties?type=villa" 
+                <Link
+                  href="/properties?type=villa"
                   className="group text-gray-300 hover:text-white transition-colors duration-300 flex items-center"
                 >
                   <span className="bg-white/10 p-1 rounded mr-2 group-hover:bg-white/20 transition-colors duration-300">
@@ -145,7 +146,7 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          
+
           {/* Contact Info */}
           <div>
             <h3 className="text-lg font-bold mb-6 text-gray-200">Contact Us</h3>
@@ -191,7 +192,7 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="mt-12 pt-8 border-t border-white/10 text-center">
           <p className="text-gray-400">&copy; {new Date().getFullYear()} HouseRental. All rights reserved.</p>
         </div>
