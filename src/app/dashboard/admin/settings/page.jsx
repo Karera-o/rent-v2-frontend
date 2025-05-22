@@ -752,7 +752,7 @@ export default function SettingsPage() {
                       <input
                         type="text"
                         readOnly
-                        value="sk_live_51JKl2kLkjN3mN4n5O6p7Q8r9S0t1U2v3W4x5Y6z7A8b9C0d1E2f3G4h5I6j7K8l9M0"
+                        value=""
                         className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-gray-100"
                       />
                     </div>
