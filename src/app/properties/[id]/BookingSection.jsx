@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, DollarSign, AlertCircle, User } from 'lucide-react';
+import { Calendar, DollarSign, AlertCircle, User, CheckCircle } from 'lucide-react';
 import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import BookingService from '@/services/booking';
 import { useAuth } from '@/contexts/AuthContext';
+import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
 
 export default function BookingSection({ property }) {
   const router = useRouter();
@@ -27,7 +28,8 @@ export default function BookingSection({ property }) {
     guestPhone: '',
     dateOfBirth: '',
     guests: 1,
-    specialRequests: ''
+    specialRequests: '',
+    agreeToTerms: false
   });
 
   const [errors, setErrors] = useState({});
@@ -35,6 +37,7 @@ export default function BookingSection({ property }) {
   const [bookingError, setBookingError] = useState(null);
   const [totalDays, setTotalDays] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const pricePerDay = property.price;
 
   // Pre-fill form with user data if authenticated
@@ -125,8 +128,30 @@ export default function BookingSection({ property }) {
       newErrors.dates = 'Check-out date must be after check-in date';
     }
 
+    // Validate terms and conditions acceptance
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'You must agree to the rental terms and conditions';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle terms and conditions acceptance
+  const handleAcceptTerms = () => {
+    setShowTermsModal(false);
+    setFormData(prev => ({ ...prev, agreeToTerms: true }));
+    // Clear any error related to terms agreement
+    if (errors.agreeToTerms) {
+      setErrors(prev => ({ ...prev, agreeToTerms: null }));
+    }
+  };
+
+  // Handle terms and conditions decline
+  const handleDeclineTerms = () => {
+    setShowTermsModal(false);
+    // If user declines, we don't set agreeToTerms to true
+    // They'll need to check the box manually if they change their mind
   };
 
   const handleSubmit = async (e) => {
@@ -337,6 +362,51 @@ export default function BookingSection({ property }) {
                   placeholder="Any special requests or requirements..."
                 ></textarea>
               </div>
+
+              {/* Terms and Conditions Checkbox */}
+              <div className="pt-2">
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="agreeToTerms"
+                      name="agreeToTerms"
+                      type="checkbox"
+                      checked={formData.agreeToTerms}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          agreeToTerms: e.target.checked
+                        }));
+                        // Clear error if checked
+                        if (e.target.checked && errors.agreeToTerms) {
+                          setErrors(prev => ({ ...prev, agreeToTerms: null }));
+                        }
+                      }}
+                      className={`h-4 w-4 text-[#111827] focus:ring-[#111827] border-gray-300 rounded ${
+                        errors.agreeToTerms ? 'border-red-500' : ''
+                      }`}
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="agreeToTerms" className="font-medium text-gray-700">
+                      I agree to the{' '}
+                      <button
+                        type="button"
+                        onClick={() => setShowTermsModal(true)}
+                        className="text-[#111827] hover:text-gray-700 underline"
+                      >
+                        Rental Terms and Conditions
+                      </button>
+                    </label>
+                  </div>
+                </div>
+                {errors.agreeToTerms && (
+                  <div className="text-red-500 text-sm mt-1 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.agreeToTerms}
+                  </div>
+                )}
+              </div>
             </div>
 
             {bookingError && (
@@ -372,6 +442,17 @@ export default function BookingSection({ property }) {
           </form>
         </div>
       </div>
+
+      {/* Terms and Conditions Modal */}
+      <TermsAndConditionsModal
+        open={showTermsModal}
+        onOpenChange={setShowTermsModal}
+        onAccept={handleAcceptTerms}
+        onDecline={handleDeclineTerms}
+        title="Tenant Rental Terms and Conditions"
+        acceptButtonText="I Accept the Terms"
+        declineButtonText="I Decline"
+      />
     </div>
   );
 }

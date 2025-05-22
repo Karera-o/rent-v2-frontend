@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import AuthService from '@/services/auth'
 import GoogleLoginButton from '@/components/GoogleLoginButton'
 import TwitterLoginButton from '@/components/TwitterLoginButton'
+import TermsAndConditionsModal from '@/components/TermsAndConditionsModal'
 
 export default function RegisterPage() {
   const { register, isAuthenticated, user, getUserProfile } = useAuth()
@@ -67,6 +68,7 @@ export default function RegisterPage() {
   const [passwordStrength, setPasswordStrength] = useState(0)
   const [passwordFeedback, setPasswordFeedback] = useState('')
   const [formErrors, setFormErrors] = useState({})
+  const [showTermsModal, setShowTermsModal] = useState(false)
 
   // Animation state
   const [direction, setDirection] = useState('forward')
@@ -204,6 +206,23 @@ export default function RegisterPage() {
       setCurrentStep(currentStep - 1)
       setAnimating(false)
     }, 300)
+  }
+
+  // Handle terms and conditions acceptance
+  const handleAcceptTerms = () => {
+    setShowTermsModal(false);
+    setFormData(prev => ({ ...prev, agreeToTerms: true }));
+    // Clear any error related to terms agreement
+    if (formErrors.agreeToTerms) {
+      setFormErrors(prev => ({ ...prev, agreeToTerms: null }));
+    }
+  }
+
+  // Handle terms and conditions decline
+  const handleDeclineTerms = () => {
+    setShowTermsModal(false);
+    // If user declines, we don't set agreeToTerms to true
+    // They'll need to check the box manually if they change their mind
   }
 
   // Handle form submission
@@ -591,7 +610,11 @@ export default function RegisterPage() {
                         ? 'border-gray-900 bg-gray-100'
                         : 'border-gray-300 hover:border-gray-700'
                     }`}
-                    onClick={() => setFormData({ ...formData, userType: 'tenant' })}
+                    onClick={() => {
+                      setFormData({ ...formData, userType: 'tenant' });
+                      // Show terms and conditions modal when tenant is selected
+                      setShowTermsModal(true);
+                    }}
                   >
                     <div className="flex justify-center mb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-12 w-12 ${formData.userType === 'tenant' ? 'text-gray-900' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -713,13 +736,13 @@ export default function RegisterPage() {
                     <div className="ml-3 text-sm">
                       <label htmlFor="agreeToTerms" className="font-medium text-gray-700">
                         I agree to the{' '}
-                        <a href="#" className="text-gray-900 hover:text-gray-700">
-                          Terms of Service
-                        </a>{' '}
-                        and{' '}
-                        <a href="#" className="text-gray-900 hover:text-gray-700">
-                          Privacy Policy
-                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setShowTermsModal(true)}
+                          className="text-gray-900 hover:text-gray-700 underline"
+                        >
+                          Rental Terms and Conditions
+                        </button>
                       </label>
                     </div>
                   </div>
@@ -876,6 +899,17 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* Terms and Conditions Modal */}
+      <TermsAndConditionsModal
+        open={showTermsModal}
+        onOpenChange={setShowTermsModal}
+        onAccept={handleAcceptTerms}
+        onDecline={handleDeclineTerms}
+        title="Tenant Rental Terms and Conditions"
+        acceptButtonText="I Accept the Terms"
+        declineButtonText="I Decline"
+      />
     </div>
   )
 }
