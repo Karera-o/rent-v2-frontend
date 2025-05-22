@@ -55,6 +55,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     phoneNumber: '',
+    dateOfBirth: '',
     userType: 'tenant', // tenant or landlord
     agreeToTerms: false
   })
@@ -123,6 +124,25 @@ export default function RegisterPage() {
       if (!formData.lastName.trim()) errors.lastName = 'Last name is required'
       if (!formData.email.trim()) errors.email = 'Email is required'
       else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid'
+
+      // Validate date of birth
+      if (!formData.dateOfBirth) {
+        errors.dateOfBirth = 'Date of birth is required'
+      } else {
+        // Check if user is at least 18 years old
+        const birthDate = new Date(formData.dateOfBirth)
+        const today = new Date()
+        let age = today.getFullYear() - birthDate.getFullYear()
+        const monthDiff = today.getMonth() - birthDate.getMonth()
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--
+        }
+
+        if (age < 18) {
+          errors.dateOfBirth = 'You must be at least 18 years old to register'
+        }
+      }
     }
 
     if (currentStep === 2) {
@@ -213,7 +233,8 @@ export default function RegisterPage() {
           first_name: formData.firstName,
           last_name: formData.lastName,
           role: formData.userType === 'landlord' ? 'agent' : 'tenant', // Map userType to role
-          phone_number: formData.phoneNumber || null
+          phone_number: formData.phoneNumber || null,
+          date_of_birth: formData.dateOfBirth
         }
 
         console.log('Submitting user data:', userData);
@@ -376,6 +397,34 @@ export default function RegisterPage() {
                   </div>
                   {formErrors.email && (
                     <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
+                    Date of Birth <span className="text-xs text-gray-500">(Must be 18 or older)</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <input
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      type="date"
+                      autoComplete="bday"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                      className={`pl-10 w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 ${
+                        formErrors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
+                  {formErrors.dateOfBirth && (
+                    <p className="mt-1 text-sm text-red-500">{formErrors.dateOfBirth}</p>
                   )}
                 </div>
 
@@ -631,6 +680,9 @@ export default function RegisterPage() {
 
                     <div className="text-gray-600">Email:</div>
                     <div className="font-medium">{formData.email}</div>
+
+                    <div className="text-gray-600">Date of Birth:</div>
+                    <div className="font-medium">{new Date(formData.dateOfBirth).toLocaleDateString()}</div>
 
                     <div className="text-gray-600">Account Type:</div>
                     <div className="font-medium capitalize">{formData.userType}</div>

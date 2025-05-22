@@ -25,6 +25,7 @@ export default function BookingSection({ property }) {
     guestName: '',
     guestEmail: '',
     guestPhone: '',
+    dateOfBirth: '',
     guests: 1,
     specialRequests: ''
   });
@@ -43,7 +44,8 @@ export default function BookingSection({ property }) {
         ...prev,
         guestName: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username,
         guestEmail: user.email || '',
-        guestPhone: user.phone || ''
+        guestPhone: user.phone_number || '',
+        dateOfBirth: user.date_of_birth || ''
       }));
     }
   }, [isAuthenticated, user]);
@@ -99,6 +101,25 @@ export default function BookingSection({ property }) {
       newErrors.guestPhone = 'Please enter a valid phone number';
     }
 
+    // Validate date of birth for all users
+    if (!formData.dateOfBirth) {
+      newErrors.dateOfBirth = 'Date of birth is required';
+    } else {
+      // Check if user is at least 18 years old
+      const birthDate = new Date(formData.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 18) {
+        newErrors.dateOfBirth = 'You must be at least 18 years old to book a property';
+      }
+    }
+
     // Validate dates
     if (dateRange[0].startDate >= dateRange[0].endDate) {
       newErrors.dates = 'Check-out date must be after check-in date';
@@ -136,6 +157,7 @@ export default function BookingSection({ property }) {
         guest_name: formData.guestName,
         guest_email: formData.guestEmail,
         guest_phone: formData.guestPhone,
+        date_of_birth: formData.dateOfBirth,
         special_requests: formData.specialRequests
       };
 
@@ -265,6 +287,27 @@ export default function BookingSection({ property }) {
                   <div className="text-red-500 text-sm mt-1 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {errors.guestPhone}
+                  </div>
+                )}
+              </div>
+
+              {/* Date of Birth - Show for all users */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date of Birth <span className="text-xs text-gray-500">(Must be 18 or older)</span>
+                </label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                  className={`w-full px-4 py-2 rounded-md border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent`}
+                />
+                {errors.dateOfBirth && (
+                  <div className="text-red-500 text-sm mt-1 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.dateOfBirth}
                   </div>
                 )}
               </div>
