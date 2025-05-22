@@ -25,6 +25,7 @@ const Navbar = () => {
               <Link href="/" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 border-b-2 border-transparent hover:border-[#111827] hover:text-[#111827]">
                 Home
               </Link>
+              
               <Link href="/properties" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:border-[#111827] hover:text-[#111827]">
                 Properties
               </Link>
@@ -68,6 +69,9 @@ const Navbar = () => {
           <div className="pt-2 pb-3 space-y-1">
             <Link href="/" className="block pl-3 pr-4 py-2 text-base font-medium text-[#111827] bg-gray-50 border-l-4 border-[#111827]">
               Home
+            </Link>
+            <Link href="/home-alternative" className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-[#111827] hover:bg-gray-50 hover:border-[#111827] border-l-4 border-transparent">
+              Alternative Home
             </Link>
             <Link href="/properties" className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-[#111827] hover:bg-gray-50 hover:border-[#111827] border-l-4 border-transparent">
               Properties

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button.jsx'
+import SearchBar from '@/components/SearchBar'
 
 const Hero = () => {
   return (
@@ -24,29 +25,29 @@ const Hero = () => {
                 <span className="block text-gray-900 xl:inline bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-800">Rental Home</span>
               </h1>
               <p className="mt-3 text-base text-gray-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 leading-relaxed">
-                Discover thousands of rental properties in your area. From cozy apartments to spacious houses, 
+                Discover thousands of rental properties in your area. From cozy apartments to spacious houses,
                 we have the perfect home waiting for you.
               </p>
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                <div className="rounded-md shadow">
-                  <Link href="/properties">
-                    <Button size="lg" className="w-full">
-                      Browse Properties
-                    </Button>
-                  </Link>
-                </div>
-                <div className="mt-3 sm:mt-0 sm:ml-3">
-                  <Link href="/contact">
-                    <Button variant="outline" size="lg" className="w-full">
-                      Contact Us
-                    </Button>
-                  </Link>
-                </div>
+
+              {/* Search Bar */}
+              <div className="mt-6 sm:mt-8 lg:mt-10">
+                <SearchBar className="lg:max-w-xl" />
+              </div>
+
+              {/* Contact Us Button */}
+              <div className="mt-4 sm:mt-6">
+                <Link href="/contact">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    Need help? Contact Us
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Hero Image */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
         <div className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full bg-gray-200 relative rounded-lg shadow-2xl overflow-hidden transform lg:-translate-x-10 lg:translate-y-10">
           <Image
