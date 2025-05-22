@@ -1,0 +1,82 @@
+/* Fix for unwanted circle in UI */
+.button-container::before,
+.button-container::after,
+button::before,
+button::after,
+a::before,
+a::after {
+  display: none !important;
+}
+
+/* Remove any debugging circles */
+[data-debug-circle],
+.debug-circle,
+.cursor-indicator,
+.focus-indicator {
+  display: none !important;
+}
+
+/* Remove any SVG circles that might be used for debugging */
+svg circle.debug,
+svg circle.indicator,
+svg circle.cursor-indicator {
+  display: none !important;
+}
+
+/* Remove any absolute positioned elements that might be creating the circle */
+.absolute.rounded-full:not(.notification-indicator):not(.badge):not(.avatar):not(.profile-picture) {
+  display: none !important;
+}
+
+/* Fix for React Developer Tools overlay */
+.__react_devtools_overlay {
+  display: none !important;
+}
+
+/* Target specific circle near buttons */
+body::before,
+#__next::before,
+.container::before,
+.container-responsive::before,
+.button-wrapper::before,
+.button-group::before {
+  display: none !important;
+}
+
+/* Target any circle with fixed position */
+.fixed.rounded-full,
+.fixed[style*="border-radius: 50%"],
+.fixed[style*="border-radius:50%"],
+.absolute.rounded-full,
+.absolute[style*="border-radius: 50%"],
+.absolute[style*="border-radius:50%"] {
+  display: none !important;
+}
+
+/* Target any element with circle styling that's not part of the UI */
+[style*="border-radius: 50%"]:not(.avatar):not(.profile-picture):not(.badge):not(.notification-indicator):not(.user-icon):not(.status-indicator) {
+  display: none !important;
+}
+
+/* Specific fix for the circle near the "Shop Collection" button */
+.circle-overlay,
+.debug-overlay,
+.dev-tools-overlay,
+.cursor-position-indicator,
+.focus-ring-indicator,
+.react-dev-overlay,
+.react-dev-tools-overlay,
+.dev-tools-highlight,
+.react-inspector-overlay {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Target any absolutely positioned element near buttons */
+button + div[style*="position: absolute"],
+a + div[style*="position: absolute"],
+.button-container + div[style*="position: absolute"] {
+  display: none !important;
+}

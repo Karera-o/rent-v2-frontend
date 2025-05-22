@@ -1,0 +1,67 @@
+/* Mobile Navigation Styles */
+
+/* Safe area support for devices with notches/indicators */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Additional safe area support for older devices */
+@supports (padding-bottom: constant(safe-area-inset-bottom)) {
+  .safe-area-pb {
+    padding-bottom: constant(safe-area-inset-bottom);
+  }
+  
+  .pb-safe {
+    padding-bottom: constant(safe-area-inset-bottom);
+  }
+}
+
+/* Ensure bottom navigation doesn't interfere with content */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+/* PWA fullscreen mode adjustments */
+@media (display-mode: standalone) {
+  /* Adjust for standalone PWA mode */
+  .safe-area-pb {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 1023px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Bottom navigation enhancements */
+.bottom-nav-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.95);
+}
+
+/* Haptic feedback simulation */
+@media (hover: none) and (pointer: coarse) {
+  .bottom-nav-item:active {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+  }
+}

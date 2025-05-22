@@ -1,0 +1,38 @@
+/* Direct style overrides to remove unwanted UI elements */
+
+/* Remove any circles that might be added by development tools or debugging overlays */
+body::after,
+#__next::after,
+.container::after,
+.container-responsive::after,
+div::after,
+button::after,
+a::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Target the specific circle shown in the screenshot */
+div[style*="border: 1px solid"],
+div[style*="border-radius: 50%"],
+div[style*="border:1px solid"],
+div[style*="border-radius:50%"] {
+  display: none !important;
+}
+
+/* Override any React Developer Tools or browser extensions that might add debugging elements */
+.__react_devtools_element_highlighter__,
+.__react_devtools_element_inspector__,
+.__react_devtools_overlay__,
+.__react_devtools_highlight__,
+.__react_devtools_selection__,
+.__react_devtools_tooltip__ {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Target any element with a circular border that's not part of the UI */
+*[style*="border-radius: 50%"]:not(button):not(input):not(img):not(.avatar):not(.badge):not(.icon) {
+  display: none !important;
+}
