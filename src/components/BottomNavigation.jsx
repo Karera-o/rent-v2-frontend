@@ -42,17 +42,7 @@ export default function BottomNavigation() {
           <span className="text-xs mt-1">Properties</span>
         </Link>
 
-        <Link
-          href={getTabUrl('account')}
-          className={`flex flex-col items-center justify-center w-full h-full min-h-[56px] ${
-            activeTab === 'account'
-              ? 'text-[#111827]'
-              : 'text-gray-500 hover:text-[#111827]'
-          }`}
-        >
-          <User className={`h-5 w-5 ${activeTab === 'account' ? 'fill-current' : ''}`} />
-          <span className="text-xs mt-1">Account</span>
-        </Link>
+       
 
         <Link
           href={getTabUrl('search')}
@@ -64,6 +54,17 @@ export default function BottomNavigation() {
         >
           <Search className={`h-5 w-5 ${activeTab === 'search' ? 'fill-current' : ''}`} />
           <span className="text-xs mt-1">Search</span>
+        </Link>
+         <Link
+          href={getTabUrl('account')}
+          className={`flex flex-col items-center justify-center w-full h-full min-h-[56px] ${
+            activeTab === 'account'
+              ? 'text-[#111827]'
+              : 'text-gray-500 hover:text-[#111827]'
+          }`}
+        >
+          <User className={`h-5 w-5 ${activeTab === 'account' ? 'fill-current' : ''}`} />
+          <span className="text-xs mt-1">Account</span>
         </Link>
       </div>
     </div>
