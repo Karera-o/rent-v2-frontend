@@ -2,7 +2,9 @@
 
 import { usePathname } from 'next/navigation';
 import useIsPWA from '@/hooks/useIsPWA';
+import useUserRole from '@/hooks/useUserRole';
 import BottomNavigation from '@/components/BottomNavigation';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 
 /**
  * PWA Layout component that conditionally wraps content with bottom navigation
@@ -11,19 +13,26 @@ import BottomNavigation from '@/components/BottomNavigation';
 export default function PWALayout({ children }) {
   const isPWA = useIsPWA();
   const pathname = usePathname();
-  
+  const { role } = useUserRole();
+
+  // Check if the current path is in a dashboard
+  const isDashboard = pathname?.includes('/dashboard');
+
   // Check if the current path should hide the bottom navigation
-  const shouldHideBottomNav = 
-    pathname?.includes('/dashboard') || 
-    pathname?.includes('/checkout');
+  const shouldHideBottomNav = pathname?.includes('/checkout');
+
+  // Determine if we should show the standard bottom nav or role-based nav
+  const showStandardNav = isPWA && !isDashboard && !shouldHideBottomNav;
+  const showRoleBasedNav = isPWA && isDashboard && !shouldHideBottomNav;
 
   return (
     <>
-      <div className={isPWA && !shouldHideBottomNav ? 'pwa-content pb-16' : ''}>
+      <div className={isPWA && (showStandardNav || showRoleBasedNav) ? 'pwa-content pb-16' : ''}>
         {children}
       </div>
-      
-      {isPWA && !shouldHideBottomNav && <BottomNavigation />}
+
+      {showStandardNav && <BottomNavigation />}
+      {showRoleBasedNav && <RoleBasedBottomNav userRole={role} />}
     </>
   );
 }
