@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 
 // Featured locations in Rwanda
 const rwandaDestinations = [
@@ -28,34 +29,44 @@ const rwandaDestinations = [
 
 const DestinationCard = ({ destination }) => {
   return (
-    <Link href={`/properties?location=${destination.name}`}>
-      <div className="group relative h-80 rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl">
-        {/* Destination Image */}
+    <Link href={`/properties?location=${destination.name}`} className="block group">
+      <div className="relative h-80 sm:h-96 overflow-hidden">
+        {/* Elegant border that appears on hover */}
+        <div className="absolute inset-0 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+
+        {/* Destination Image with subtle hover effect */}
         <div className="absolute inset-0">
           <Image
             src={destination.image}
             alt={destination.name}
             fill
             style={{ objectFit: 'cover' }}
-            className="transition-transform duration-700 group-hover:scale-110"
+            className="transition-transform duration-1000 ease-out group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
+          {/* Elegant gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20"></div>
         </div>
 
-        {/* Content */}
-        <div className="absolute bottom-0 left-0 p-6 w-full">
-          <div className="flex justify-between items-end">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">{destination.name}</h3>
-              <p className="text-white/80 text-sm mb-2 line-clamp-2">{destination.description}</p>
-              <div className="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">
-                <span className="text-white text-sm font-medium">{destination.properties} properties</span>
-              </div>
+        {/* Content with minimalist design */}
+        <div className="absolute inset-0 flex flex-col justify-end p-8 z-10">
+          {/* Location name with elegant typography */}
+          <h3 className="text-2xl font-light text-white mb-2">{destination.name}</h3>
+
+          {/* Description with refined styling */}
+          <p className="text-white/80 text-sm mb-4 line-clamp-2 max-w-xs">{destination.description}</p>
+
+          {/* Property count with minimal badge */}
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center border border-white/30 px-3 py-1.5 backdrop-blur-sm">
+              <span className="text-white text-xs">{destination.properties} properties</span>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm p-2 rounded-full transform translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#111827]" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+
+            {/* Explore button with animated arrow */}
+            <div className="flex items-center text-white text-sm group/btn">
+              <span className="mr-2 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300">Explore</span>
+              <span className="transform transition-transform duration-300 group-hover/btn:translate-x-1">
+                <ArrowRight className="h-4 w-4" />
+              </span>
             </div>
           </div>
         </div>
@@ -66,17 +77,22 @@ const DestinationCard = ({ destination }) => {
 
 const PopularDestinations = () => {
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-[#111827]/5">
+    <section className="py-24 bg-white">
       <div className="container-responsive">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">Popular Destinations</h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-[#111827] to-[#1f2937] mx-auto mt-2 mb-6 rounded-full"></div>
-          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+        {/* Elegant section header */}
+        <div className="text-center mb-20">
+          <span className="text-xs uppercase tracking-widest text-gray-500 mb-3 block">Explore Rwanda</span>
+          <h2 className="text-3xl font-light text-[#111827] relative inline-block">
+            Popular Destinations
+          </h2>
+          <div className="mt-4 mx-auto w-16 h-px bg-[#111827]"></div>
+          <p className="mt-6 text-base text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Explore properties in these trending locations across Rwanda
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Destinations grid with alignment matching footer */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {rwandaDestinations.map((destination) => (
             <DestinationCard key={destination.id} destination={destination} />
           ))}

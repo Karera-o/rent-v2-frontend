@@ -150,6 +150,44 @@
   }
 }
 
+/* Custom container for destinations to match footer alignment */
+.destinations-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  max-width: var(--footer-max-width, 1280px);
+}
+
+@media (min-width: 640px) {
+  .destinations-container {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .destinations-container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .destinations-container {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .destinations-container {
+    padding-left: 5rem;
+    padding-right: 5rem;
+  }
+}
+
 /* Primary color gradients */
 .primary-gradient {
   @apply bg-gradient-to-r from-[#111827] to-[#1f2937];

@@ -8,36 +8,36 @@ import HowItWorks from '@/components/HowItWorks.jsx'
 import PopularDestinations from '@/components/PopularDestinations.jsx'
 import PropertyShowcase from '@/components/PropertyShowcase.jsx'
 
-// Featured property categories for quick navigation in Rwanda
+// Featured property categories with elegant styling
 const propertyCategories = [
   {
     name: 'Apartments',
-    icon: <Building className="h-6 w-6 mb-3 text-[#111827] group-hover:text-white transition-colors duration-300" />,
+    icon: <Building className="h-5 w-5 text-[#111827] transition-colors duration-300" />,
     query: 'property_type=apartment'
   },
   {
     name: 'Houses',
-    icon: <HomeIcon className="h-6 w-6 mb-3 text-[#111827] group-hover:text-white transition-colors duration-300" />,
+    icon: <HomeIcon className="h-5 w-5 text-[#111827] transition-colors duration-300" />,
     query: 'property_type=house'
   },
   {
     name: 'Villas',
-    icon: <Castle className="h-6 w-6 mb-3 text-[#111827] group-hover:text-white transition-colors duration-300" />,
+    icon: <Castle className="h-5 w-5 text-[#111827] transition-colors duration-300" />,
     query: 'property_type=villa'
   },
   {
     name: 'Studios',
-    icon: <Warehouse className="h-6 w-6 mb-3 text-[#111827] group-hover:text-white transition-colors duration-300" />,
+    icon: <Warehouse className="h-5 w-5 text-[#111827] transition-colors duration-300" />,
     query: 'property_type=studio'
   },
   {
     name: 'Compounds',
-    icon: <Trees className="h-6 w-6 mb-3 text-[#111827] group-hover:text-white transition-colors duration-300" />,
+    icon: <Trees className="h-5 w-5 text-[#111827] transition-colors duration-300" />,
     query: 'property_type=compound'
   },
   {
     name: 'Bungalows',
-    icon: <Building2 className="h-6 w-6 mb-3 text-[#111827] group-hover:text-white transition-colors duration-300" />,
+    icon: <Building2 className="h-5 w-5 text-[#111827] transition-colors duration-300" />,
     query: 'property_type=bungalow'
   }
 ];
@@ -47,31 +47,49 @@ export default function Home() {
     <>
       <HeroAlt />
 
-      {/* Featured Categories Section */}
-      <div className="bg-white py-12 mt-24 pt-12">
+      {/* Featured Categories Section - Elegant Minimalist Design */}
+      <div className="bg-white py-20 mt-16">
         <div className="container-responsive">
-          <h2 className="text-2xl font-bold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-            Browse by Property Type
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {/* Elegant section header */}
+          <div className="text-center mb-16">
+            <span className="text-xs uppercase tracking-widest text-gray-500 mb-3 block">Explore Options</span>
+            <h2 className="text-3xl font-light text-[#111827] relative inline-block">
+              Browse by Property Type
+            </h2>
+            <div className="mt-4 mx-auto w-16 h-px bg-[#111827]"></div>
+          </div>
+
+          {/* Refined category grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 max-w-5xl mx-auto">
             {propertyCategories.map((category, index) => (
               <Link
                 key={index}
                 href={`/properties?${category.query}`}
-                className="group flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 hover:bg-[#111827] hover:border-[#111827] transition-all duration-300 shadow-sm hover:shadow-md"
+                className="group flex flex-col items-center justify-center p-6 border border-gray-100 hover:border-[#111827] transition-all duration-300 relative overflow-hidden"
               >
-                {category.icon}
-                <span className="text-sm font-medium text-gray-700 group-hover:text-white transition-colors duration-300">
+                {/* Subtle background highlight on hover */}
+                <div className="absolute inset-0 bg-[#111827]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                {/* Icon with refined styling */}
+                <div className="relative mb-4 p-3 rounded-full bg-gray-50 group-hover:bg-white transition-colors duration-300">
+                  {category.icon}
+                </div>
+
+                {/* Category name with elegant typography */}
+                <span className="text-sm font-medium text-gray-700 group-hover:text-[#111827] transition-colors duration-300 relative">
                   {category.name}
                 </span>
+
+                {/* Animated underline on hover */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-0 h-px bg-[#111827] transition-all duration-300 group-hover:w-12"></div>
               </Link>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Property Search Results Section */}
-      <div className="bg-gradient-to-b from-white to-gray-50 py-16">
+      {/* Property Search Results Section - Refined Design */}
+      <div className="bg-white py-24">
         <div className="container-responsive">
           <PropertySearchResults limit={8} />
         </div>

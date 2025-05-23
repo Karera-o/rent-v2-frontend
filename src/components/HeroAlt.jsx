@@ -15,33 +15,36 @@ const HeroAlt = () => {
             fill
             style={{ objectFit: 'cover' }}
             priority
+            className="transition-opacity duration-700 opacity-90"
           />
-          {/* Enhanced Gradient Overlay for better text visibility */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/40" />
+          {/* Darker gradient overlay for better text visibility */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/50" />
         </div>
       </div>
 
-      {/* Hero Content */}
-      <div className="relative z-10 container-responsive pt-24 pb-36 md:pt-36 md:pb-44">
+      {/* Hero Content with minimalist design */}
+      <div className="relative z-10 container-responsive pt-28 pb-40 md:pt-40 md:pb-48">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Added text shadow for better visibility */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
+          {/* Thin decorative line above heading */}
+          <div className="w-16 h-px bg-white/70 mx-auto mb-8"></div>
+
+          {/* Elegant typography with text shadow for better visibility */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-8 tracking-tight drop-shadow-md">
             Find Your Perfect Home in Rwanda
           </h1>
-          {/* Added semi-transparent background panel for better text visibility */}
-          <div className="inline-block px-6 py-3 rounded-lg bg-black/30 backdrop-blur-sm">
-            <p className="text-lg md:text-xl text-white mb-0 max-w-2xl mx-auto">
-              Discover beautiful rental properties across Rwanda. From modern apartments in Kigali to
-              scenic homes near Volcanoes National Park, your ideal home awaits.
-            </p>
-          </div>
+
+          {/* Description with subtle background for better visibility */}
+          <p className="text-lg  text-white mb-0 max-w-2xl mx-auto leading-relaxed px-6 py-3 bg-black/30 backdrop-blur-sm inline-block">
+            Discover beautiful rental properties across Rwanda. From modern apartments in Kigali to
+            scenic homes near Volcanoes National Park, your ideal home awaits.
+          </p>
         </div>
       </div>
 
-      {/* Search Bar - Positioned to overlap with the image and content below */}
+      {/* Search Bar with elegant styling */}
       <div className="relative z-20 container-responsive -mt-20 md:-mt-24 mb-8">
         <div className="max-w-5xl mx-auto">
-          <AdvancedSearchBar className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-100" />
+          <AdvancedSearchBar className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-xl" />
         </div>
       </div>
     </div>

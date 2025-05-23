@@ -167,20 +167,20 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
 
   // Determine styles based on variant
   const containerStyles = variant === "default"
-    ? "bg-white rounded-xl shadow-xl"
+    ? "bg-white"
     : variant === "minimal"
       ? "bg-transparent"
       : "bg-transparent";
 
   return (
     <div className={`${containerStyles} ${className}`}>
-      <div className="flex flex-col md:flex-row md:items-center md:divide-x md:divide-gray-200">
-        {/* Location Search */}
-        <div className="relative p-3 md:p-4 flex-grow">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+      <div className="flex flex-col md:flex-row md:items-end">
+        {/* Location Search with elegant minimal styling */}
+        <div className="relative p-4 md:p-6 flex-grow">
+          <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2">Location</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MapPin className="h-5 w-5 text-gray-400" />
+              <MapPin className="h-4 w-4 text-gray-400" />
             </div>
             <input
               ref={locationInputRef}
@@ -189,14 +189,14 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
               value={location}
               onChange={handleLocationChange}
               onFocus={() => location.length > 1 && setShowSuggestions(true)}
-              className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#111827] focus:border-[#111827] transition-all duration-200"
+              className="pl-10 pr-4 py-2.5 w-full border-b border-gray-200 focus:border-[#111827] focus:outline-none transition-all duration-200 bg-transparent"
             />
 
-            {/* Location Suggestions with improved styling */}
+            {/* Location Suggestions with elegant styling */}
             {showSuggestions && (
               <div
                 ref={suggestionsRef}
-                className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto"
+                className="absolute z-10 mt-1 w-full bg-white shadow-lg border border-gray-100 max-h-60 overflow-auto"
               >
                 {locationSuggestions.length > 0 ? (
                   locationSuggestions.map((suggestion, index) => (
@@ -205,8 +205,8 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
                       className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer flex items-center transition-colors duration-150"
                       onClick={() => handleSuggestionSelect(suggestion)}
                     >
-                      <MapPin className="h-4 w-4 text-gray-500 mr-2" />
-                      {suggestion}
+                      <MapPin className="h-3.5 w-3.5 mr-2 text-gray-400" />
+                      <span className="text-sm">{suggestion}</span>
                     </div>
                   ))
                 ) : (
@@ -219,51 +219,54 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
           </div>
         </div>
 
-        {/* Filters Button */}
-        <div className="p-3 md:p-4 md:pl-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Filters</label>
+        {/* Filters Button with minimal design */}
+        <div className="p-4 md:p-6 md:pl-8">
+          <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2">Filters</label>
           <Button
             variant="outline"
             onClick={handleFilterClick}
-            className="w-full justify-between border-gray-300 hover:border-[#111827] transition-colors duration-200"
+            className="w-full justify-between border-gray-200 hover:border-[#111827] transition-colors duration-200 bg-transparent"
           >
             <div className="flex items-center">
-              <Filter className="h-4 w-4 mr-2 text-gray-500" />
-              <span className="text-gray-700">Add filters</span>
+              <Filter className="h-3.5 w-3.5 mr-2 text-gray-500" />
+              <span className="text-sm text-gray-700">Add filters</span>
             </div>
-            <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
+            <ChevronDown className="h-3.5 w-3.5 ml-2 opacity-50" />
           </Button>
         </div>
 
-        {/* Search Button with enhanced styling */}
-        <div className="p-3 md:p-4 md:pl-6">
-          <label className="block text-sm font-medium text-transparent mb-1">Search</label>
+        {/* Search Button with elegant styling */}
+        <div className="p-4 md:p-6 md:pl-8">
+          <label className="block text-xs uppercase tracking-wider text-transparent mb-2">Search</label>
           <Button
             onClick={handleSearch}
-            className="w-full bg-[#111827] hover:bg-[#1f2937] transition-colors duration-200"
+            className="w-full border border-[#111827] bg-[#111827] hover:bg-transparent hover:text-[#111827] text-white transition-all duration-300"
           >
-            <Search className="h-4 w-4 mr-2" />
-            Search
+            <Search className="h-3.5 w-3.5 mr-2" />
+            <span className="text-sm">Search</span>
           </Button>
         </div>
       </div>
 
-      {/* Filters Panel */}
+      {/* Elegant Filters Panel */}
       {activeFilter === 'filters' && (
-        <div className="mt-4 p-6 bg-white rounded-lg border border-gray-200 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-medium text-lg text-gray-900">Filters</h3>
-            <button onClick={() => setActiveFilter(null)} className="text-gray-500 hover:text-gray-700">
+        <div className="mt-4 p-8 bg-white border border-gray-100 shadow-lg">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <span className="text-xs uppercase tracking-widest text-gray-500 block mb-1">Refine Search</span>
+              <h3 className="font-light text-lg text-[#111827]">Filters</h3>
+            </div>
+            <button onClick={() => setActiveFilter(null)} className="text-gray-400 hover:text-[#111827] transition-colors duration-200">
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Property Type */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Property Type with elegant styling */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+              <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2">Property Type</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#111827] focus:border-[#111827]"
+                className="w-full p-2.5 border-b border-gray-200 focus:border-[#111827] focus:outline-none transition-all duration-200 bg-transparent text-sm"
                 value={filters.propertyType}
                 onChange={(e) => setFilters({...filters, propertyType: e.target.value})}
               >
@@ -274,11 +277,11 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
               </select>
             </div>
 
-            {/* Bedrooms */}
+            {/* Bedrooms with minimal styling */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+              <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2">Bedrooms</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#111827] focus:border-[#111827]"
+                className="w-full p-2.5 border-b border-gray-200 focus:border-[#111827] focus:outline-none transition-all duration-200 bg-transparent text-sm"
                 value={filters.bedrooms || ''}
                 onChange={(e) => setFilters({...filters, bedrooms: e.target.value ? parseInt(e.target.value) : null})}
               >
@@ -291,11 +294,11 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
               </select>
             </div>
 
-            {/* Price Range */}
+            {/* Price Range with elegant styling */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+              <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2">Price Range</label>
               <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#111827] focus:border-[#111827]"
+                className="w-full p-2.5 border-b border-gray-200 focus:border-[#111827] focus:outline-none transition-all duration-200 bg-transparent text-sm"
                 value={`${filters.minPrice}-${filters.maxPrice === 5000 ? 'any' : filters.maxPrice}`}
                 onChange={(e) => {
                   const [min, max] = e.target.value.split('-');
@@ -316,13 +319,13 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
             </div>
           </div>
 
-          {/* Apply Button */}
-          <div className="mt-6 flex justify-end">
+          {/* Apply Button with elegant styling */}
+          <div className="mt-10 flex justify-end">
             <Button
               onClick={handleSearch}
-              className="bg-[#111827] hover:bg-[#1f2937] text-white"
+              className="border border-[#111827] bg-[#111827] hover:bg-transparent hover:text-[#111827] text-white transition-all duration-300 px-8"
             >
-              Apply Filters
+              <span className="text-sm">Apply Filters</span>
             </Button>
           </div>
         </div>
