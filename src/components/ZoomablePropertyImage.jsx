@@ -55,15 +55,16 @@ export default function ZoomablePropertyImage({ src, alt, className }) {
         src={src}
         alt={alt}
         fill={true}
-        quality={95}
-        sizes="(max-width: 768px) 200vw, 150vw" // Load larger size for zoom
+        quality={90}
+        sizes="(max-width: 768px) 100vw, 80vw" // Reduced size for better performance with low-res images
         style={{
-          objectFit: 'cover',
+          objectFit: 'contain', // Changed from 'cover' to 'contain' to prevent pixelation
           transition: 'all 300ms ease-out',
           objectPosition: `${position.x}% ${position.y}%`,
           transform: `scale(${isHovered ? scale : 1})`,
           transformOrigin: 'center',
-          imageRendering: 'high-quality',
+          imageRendering: 'auto', // Changed from 'high-quality' to 'auto' for better browser compatibility
+          backgroundColor: '#f9fafb', // Light gray background to make image boundaries visible
         }}
         priority
         className="duration-300"

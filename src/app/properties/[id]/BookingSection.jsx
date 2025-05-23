@@ -200,22 +200,28 @@ export default function BookingSection({ property }) {
 
   return (
     <div className="lg:col-span-1">
-      <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-100 sticky top-24 space-y-6">
+      <div className="border border-gray-200 p-8 sticky top-24 space-y-8">
+        {/* Section Header */}
+        <div className="mb-6">
+          <span className="text-xs uppercase tracking-widest text-gray-500 block mb-2">Reserve</span>
+          <h3 className="text-2xl font-light text-[#111827]">
+            Book Your Stay
+          </h3>
+          <div className="mt-2 w-12 h-px bg-[#111827]"></div>
+        </div>
+
         {/* Price per day */}
-        <div className="border-b border-gray-200 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
+        <div className="border-b border-gray-100 pb-6">
+          <div className="flex items-baseline">
+            <span className="text-3xl font-light text-[#111827]">
               ${pricePerDay}
             </span>
-            <span className="text-gray-500">/day</span>
+            <span className="text-gray-500 text-sm ml-2">/day</span>
           </div>
         </div>
 
         {/* Booking Form */}
         <div>
-          <h3 className="text-xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-            Book Your Stay
-          </h3>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Date Range Picker */}
@@ -238,24 +244,24 @@ export default function BookingSection({ property }) {
               )}
             </div>
 
-            {/* Booking Summary */}
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              <h4 className="font-semibold text-gray-900">Booking Summary</h4>
+            {/* Booking Summary - Minimalist and Elegant */}
+            <div className="border border-gray-200 p-6 space-y-4">
+              <h4 className="text-sm font-medium text-gray-800">Booking Summary</h4>
 
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Duration</span>
-                <span className="font-medium">{totalDays} days</span>
+                <span className="text-gray-500">Duration</span>
+                <span>{totalDays} days</span>
               </div>
 
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Price per day</span>
-                <span className="font-medium">${pricePerDay}</span>
+                <span className="text-gray-500">Price per day</span>
+                <span>${pricePerDay}</span>
               </div>
 
-              <div className="pt-3 border-t border-gray-200">
-                <div className="flex justify-between">
-                  <span className="font-semibold">Total</span>
-                  <span className="font-bold text-lg">${totalPrice}</span>
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-medium text-gray-800">Total</span>
+                  <span className="text-xl font-light text-[#111827]">${totalPrice}</span>
                 </div>
               </div>
             </div>
@@ -270,7 +276,7 @@ export default function BookingSection({ property }) {
                   value={formData.guestName}
                   onChange={handleInputChange}
                   placeholder="John Doe"
-                  className={`w-full px-4 py-2 rounded-md border ${errors.guestName ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent`}
+                  className={`w-full px-4 py-2 border ${errors.guestName ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:border-gray-400 transition-colors`}
                 />
                 {errors.guestName && (
                   <div className="text-red-500 text-sm mt-1 flex items-center">
@@ -288,7 +294,7 @@ export default function BookingSection({ property }) {
                   value={formData.guestEmail}
                   onChange={handleInputChange}
                   placeholder="john@example.com"
-                  className={`w-full px-4 py-2 rounded-md border ${errors.guestEmail ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent`}
+                  className={`w-full px-4 py-2 border ${errors.guestEmail ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:border-gray-400 transition-colors`}
                 />
                 {errors.guestEmail && (
                   <div className="text-red-500 text-sm mt-1 flex items-center">
@@ -306,7 +312,7 @@ export default function BookingSection({ property }) {
                   value={formData.guestPhone}
                   onChange={handleInputChange}
                   placeholder="+1 (555) 000-0000"
-                  className={`w-full px-4 py-2 rounded-md border ${errors.guestPhone ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent`}
+                  className={`w-full px-4 py-2 border ${errors.guestPhone ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:border-gray-400 transition-colors`}
                 />
                 {errors.guestPhone && (
                   <div className="text-red-500 text-sm mt-1 flex items-center">
@@ -327,7 +333,7 @@ export default function BookingSection({ property }) {
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                  className={`w-full px-4 py-2 rounded-md border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent`}
+                  className={`w-full px-4 py-2 border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-200'} focus:outline-none focus:border-gray-400 transition-colors`}
                 />
                 {errors.dateOfBirth && (
                   <div className="text-red-500 text-sm mt-1 flex items-center">
@@ -343,7 +349,7 @@ export default function BookingSection({ property }) {
                   name="guests"
                   value={formData.guests}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-200 focus:outline-none focus:border-gray-400 transition-colors"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                     <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
@@ -358,7 +364,7 @@ export default function BookingSection({ property }) {
                   value={formData.specialRequests}
                   onChange={handleInputChange}
                   rows="3"
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-200 focus:outline-none focus:border-gray-400 transition-colors"
                   placeholder="Any special requests or requirements..."
                 ></textarea>
               </div>
@@ -428,7 +434,7 @@ export default function BookingSection({ property }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-[#111827] to-[#1f2937] text-white py-3 rounded-md hover:opacity-90 transition-opacity font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full border border-[#111827] bg-[#111827] text-white py-3 hover:bg-[#1f2937] transition-colors font-light disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">

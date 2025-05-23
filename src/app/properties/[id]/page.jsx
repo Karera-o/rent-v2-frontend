@@ -48,24 +48,29 @@ export default function PropertyDetailsPage({ params }) {
     fetchProperty();
   }, [params.id]);
 
-  // Show loading state
+  // Show loading state - Minimalist and Elegant
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white flex justify-center items-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-white flex justify-center items-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t border-b border-[#111827]"></div>
+          <p className="mt-6 text-gray-500 text-sm">Loading property details...</p>
+        </div>
       </div>
     );
   }
 
-  // Show error state
+  // Show error state - Minimalist and Elegant
   if (error || !property) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white flex flex-col justify-center items-center p-4">
-        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-6">{error || 'Property not found'}</p>
+      <div className="min-h-screen bg-white flex flex-col justify-center items-center p-4">
+        <div className="border border-gray-200 p-12 max-w-md w-full text-center">
+          <h2 className="text-2xl font-light text-[#111827] mb-4">Unable to Load Property</h2>
+          <p className="text-gray-600 mb-8">{error || 'Property not found'}</p>
           <Link href="/properties">
-            <Button>Back to Properties</Button>
+            <Button variant="outline" className="border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white transition-colors">
+              Back to Properties
+            </Button>
           </Link>
         </div>
       </div>
@@ -144,37 +149,43 @@ export default function PropertyDetailsPage({ params }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white">
-      <div className="container-responsive py-8">
-        {/* Breadcrumb */}
-        <nav className="mb-8 flex items-center space-x-2 text-sm">
-          <Link
-            href="/properties"
-            className="text-[#111827] hover:text-[#1f2937] transition-colors"
-          >
-            Properties
-          </Link>
-          <ChevronRight className="h-4 w-4 text-gray-500" />
-          <span className="text-gray-500">{property.title}</span>
-        </nav>
+    <div className="min-h-screen bg-white">
+      {/* Property Header with Dark Background */}
+      <div className="bg-gradient-to-b from-[#111827] to-[#1f2937] text-white py-16">
+        <div className="container-responsive">
+          {/* Breadcrumb */}
+          <nav className="mb-6 flex items-center space-x-2 text-sm">
+            <Link
+              href="/properties"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Properties
+            </Link>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+            <span className="text-gray-300">{property.title}</span>
+          </nav>
 
-        {/* Property Title and Price */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937] mb-2">
-              {property.title}
-            </h1>
-            <p className="text-gray-600 flex items-center">
-              <MapPin className="h-5 w-5 mr-1 text-[#111827]" />
-              {property.location}
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-              ${property.price}<span className="text-gray-500 text-lg">/month</span>
-            </p>
+          {/* Property Title and Price */}
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+            <div>
+              <h1 className="text-3xl font-light text-white mb-3">
+                {property.title}
+              </h1>
+              <p className="text-gray-300 flex items-center">
+                <MapPin className="h-4 w-4 mr-1 text-gray-300" />
+                {property.location}
+              </p>
+            </div>
+            <div className="mt-6 md:mt-0">
+              <p className="text-3xl font-light text-white">
+                ${property.price}<span className="text-gray-300 text-lg ml-1">/month</span>
+              </p>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="container-responsive py-12">
 
         {/* Property Images */}
         {isFullscreen && (
@@ -192,7 +203,7 @@ export default function PropertyDetailsPage({ params }) {
               <ZoomablePropertyImage
                 src={propertyImages[selectedImage]}
                 alt={property.title}
-                className="h-full w-full"
+                className="h-full w-full object-contain bg-gray-50"
               />
 
               {/* Navigation Controls */}
@@ -239,137 +250,150 @@ export default function PropertyDetailsPage({ params }) {
           </div>
         )}
 
-        <div className="mb-10">
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-
-
-            {/* Main Image with Thumbnails */}
-            <div className="w-full h-[500px] relative group">
-              {/* Thumbnails at the bottom within the image frame */}
-              <div className="absolute bottom-4 left-0 right-0 z-10 px-4">
-                <div className="flex gap-3 overflow-x-auto py-3 px-4 bg-black/30 backdrop-blur-sm rounded-lg">
-                  {propertyImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`relative h-16 w-24 flex-shrink-0 rounded-md overflow-hidden transition-all duration-200 ${selectedImage === index
-                        ? 'ring-2 ring-white shadow-md scale-105'
-                        : 'opacity-80 hover:opacity-100 hover:shadow-sm'}`}
-                    >
-                      <PropertyImage
-                        src={image}
-                        alt={`View ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+        <div className="mb-16">
+          <div className="border border-gray-200 overflow-hidden">
+            {/* Main Image with Thumbnails - Minimalist Design */}
+            <div className="w-full h-[450px] relative group">
+              {/* Main Image */}
               <ZoomablePropertyImage
                 src={propertyImages[selectedImage]}
                 alt={property.title}
-                className="h-full w-full"
+                className="h-full w-full object-contain bg-gray-50"
               />
 
-              {/* Navigation Controls */}
+              {/* Elegant Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+              {/* Navigation Controls - Minimalist */}
               <button
                 onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute left-6 top-1/2 -translate-y-1/2 p-3 border border-white/30 hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
               >
-                <ChevronLeft className="h-6 w-6 text-white" />
+                <ChevronLeft className="h-5 w-5 text-white" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/30 hover:bg-black/50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute right-6 top-1/2 -translate-y-1/2 p-3 border border-white/30 hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
               >
-                <ChevronRight className="h-6 w-6 text-white" />
+                <ChevronRight className="h-5 w-5 text-white" />
               </button>
 
-              {/* Fullscreen button */}
+              {/* Fullscreen button - Minimalist */}
               <button
                 onClick={toggleFullscreen}
-                className="absolute top-24 right-4 p-2 bg-black/30 hover:bg-black/50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute top-6 right-6 p-3 border border-white/30 hover:bg-white/10 transition-colors opacity-0 group-hover:opacity-100"
               >
-                <Maximize2 className="h-5 w-5 text-white" />
+                <Maximize2 className="h-4 w-4 text-white" />
               </button>
 
-              {/* Image counter */}
-              <div className="absolute top-4 right-4 bg-black/50 text-white text-sm px-3 py-1 rounded-full">
+              {/* Image counter - Minimalist */}
+              <div className="absolute top-6 left-6 text-white text-xs px-3 py-1.5 border border-white/30 backdrop-blur-sm">
                 {selectedImage + 1} / {propertyImages.length}
               </div>
+            </div>
+
+            {/* Thumbnails below the main image */}
+            <div className="flex gap-2 p-4 bg-white border-t border-gray-200">
+              {propertyImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`relative h-16 w-24 flex-shrink-0 overflow-hidden transition-all duration-200 ${
+                    selectedImage === index
+                      ? 'border-2 border-[#111827]'
+                      : 'border border-gray-200 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <PropertyImage
+                    src={image}
+                    alt={`View ${index + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Property Details */}
+          {/* Property Details - Minimalist and Elegant */}
           <div className="lg:col-span-2">
-            <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-100">
-              <h2 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-                Property Details
-              </h2>
+            <div className="border border-gray-200 p-8">
+              {/* Section Header */}
+              <div className="mb-10">
+                <span className="text-xs uppercase tracking-widest text-gray-500 block mb-2">About This Property</span>
+                <h2 className="text-2xl font-light text-[#111827]">
+                  Property Details
+                </h2>
+                <div className="mt-2 w-12 h-px bg-[#111827]"></div>
+              </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="flex flex-col items-center p-4 bg-[#111827]/5 rounded-lg">
-                  <Home className="h-6 w-6 text-[#111827] mb-2" />
-                  <span className="text-sm text-gray-500">Type</span>
-                  <span className="font-semibold text-gray-800 capitalize">{property.property_type}</span>
+              {/* Property Features */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10 border-b border-gray-100 pb-10">
+                <div className="flex flex-col">
+                  <Home className="h-5 w-5 text-[#111827] mb-3" />
+                  <span className="text-xs text-gray-500 mb-1">Property Type</span>
+                  <span className="text-base text-gray-800 capitalize">{property.property_type}</span>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-[#111827]/5 rounded-lg">
-                  <BedDouble className="h-6 w-6 text-[#111827] mb-2" />
-                  <span className="text-sm text-gray-500">Bedrooms</span>
-                  <span className="font-semibold text-gray-800">{property.bedrooms}</span>
+                <div className="flex flex-col">
+                  <BedDouble className="h-5 w-5 text-[#111827] mb-3" />
+                  <span className="text-xs text-gray-500 mb-1">Bedrooms</span>
+                  <span className="text-base text-gray-800">{property.bedrooms}</span>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-[#111827]/5 rounded-lg">
-                  <Bath className="h-6 w-6 text-[#111827] mb-2" />
-                  <span className="text-sm text-gray-500">Bathrooms</span>
-                  <span className="font-semibold text-gray-800">{property.bathrooms}</span>
+                <div className="flex flex-col">
+                  <Bath className="h-5 w-5 text-[#111827] mb-3" />
+                  <span className="text-xs text-gray-500 mb-1">Bathrooms</span>
+                  <span className="text-base text-gray-800">{property.bathrooms}</span>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-[#111827]/5 rounded-lg">
-                  <Square className="h-6 w-6 text-[#111827] mb-2" />
-                  <span className="text-sm text-gray-500">Area</span>
-                  <span className="font-semibold text-gray-800">{property.area} sqft</span>
+                <div className="flex flex-col">
+                  <Square className="h-5 w-5 text-[#111827] mb-3" />
+                  <span className="text-xs text-gray-500 mb-1">Area</span>
+                  <span className="text-base text-gray-800">{property.area} sqft</span>
                 </div>
               </div>
 
-              <h3 className="text-xl font-semibold mb-3 text-[#111827]">Description</h3>
-              <p className="text-gray-700 mb-6 leading-relaxed">
-                {property.description}
-              </p>
+              {/* Description */}
+              <div className="mb-10 border-b border-gray-100 pb-10">
+                <h3 className="text-lg font-light text-[#111827] mb-4">Description</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {property.description}
+                </p>
+              </div>
 
               {/* Amenities */}
-              <h3 className="text-xl font-semibold mb-4 text-[#111827]">Amenities</h3>
-              {amenities.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                  {amenities.map((amenity, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <CheckCircle className="h-5 w-5 text-[#111827]" />
-                      <span className="text-gray-700">{amenity}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center justify-center p-8 bg-[#111827]/5 rounded-lg mb-6">
-                  <Building2 className="h-6 w-6 text-gray-400 mr-3" />
-                  <span className="text-gray-500 text-lg">No amenities listed for this property</span>
-                </div>
-              )}
-
-              {/* Additional Services */}
-              {additionalServices.length > 0 && (
-                <>
-                  <h3 className="text-xl font-semibold mb-4 text-[#111827]">Additional Services</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {additionalServices.map((service, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="h-5 w-5 text-[#111827]" />
-                        <span className="text-gray-700">{service}</span>
+              <div className="mb-10">
+                <h3 className="text-lg font-light text-[#111827] mb-4">Amenities</h3>
+                {amenities.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8">
+                    {amenities.map((amenity, index) => (
+                      <div key={index} className="flex items-center">
+                        <div className="w-1 h-1 bg-[#111827] rounded-full mr-2"></div>
+                        <span className="text-gray-600 text-sm">{amenity}</span>
                       </div>
                     ))}
                   </div>
-                </>
+                ) : (
+                  <div className="border border-gray-200 p-6 text-center">
+                    <Building2 className="h-5 w-5 text-gray-400 mx-auto mb-2" />
+                    <span className="text-gray-500 text-sm">No amenities listed for this property</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional Services */}
+              {additionalServices.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-light text-[#111827] mb-4">Additional Services</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8">
+                    {additionalServices.map((service, index) => (
+                      <div key={index} className="flex items-center">
+                        <div className="w-1 h-1 bg-[#111827] rounded-full mr-2"></div>
+                        <span className="text-gray-600 text-sm">{service}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
