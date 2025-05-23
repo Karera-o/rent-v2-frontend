@@ -15,14 +15,14 @@ const Navbar = ({ className }) => {
   }
 
   return (
-    <nav className={cn("bg-white shadow-sm sticky top-0 z-50", className)}>
+    <nav className={cn("bg-white border-b border-gray-100 sticky top-0 z-50", className)}>
       <div className="container-responsive">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-[#111827]">Clickit & Getin</h1>
+              <h1 className="text-xl font-light text-[#111827]">Clickit & Getin</h1>
             </Link>
-            <div className="hidden md:ml-6 md:flex md:space-x-8">
+            <div className="hidden md:ml-8 md:flex md:space-x-8">
               <Link href="/" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 border-b-2 border-transparent hover:border-[#111827] hover:text-[#111827]">
                 Home
               </Link>
@@ -40,10 +40,14 @@ const Navbar = ({ className }) => {
           </div>
           <div className="hidden md:flex items-center space-x-4">
             <Link href="/login">
-              <Button variant="outline">Login</Button>
+              <Button variant="outline" className="border-[#111827] text-[#111827] hover:bg-gray-50 rounded-none">
+                Login
+              </Button>
             </Link>
             <Link href="/register">
-              <Button>Register</Button>
+              <Button className="bg-[#111827] hover:bg-[#1f2937] rounded-none">
+                Register
+              </Button>
             </Link>
           </div>
           <div className="flex items-center md:hidden">
@@ -71,9 +75,6 @@ const Navbar = ({ className }) => {
             <Link href="/" className="block pl-3 pr-4 py-2 text-base font-medium text-[#111827] bg-gray-50 border-l-4 border-[#111827]">
               Home
             </Link>
-            <Link href="/home-alternative" className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-[#111827] hover:bg-gray-50 hover:border-[#111827] border-l-4 border-transparent">
-              Alternative Home
-            </Link>
             <Link href="/properties" className="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-[#111827] hover:bg-gray-50 hover:border-[#111827] border-l-4 border-transparent">
               Properties
             </Link>
@@ -87,10 +88,14 @@ const Navbar = ({ className }) => {
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex items-center px-4 space-x-3">
               <Link href="/login" className="w-full">
-                <Button variant="outline" className="w-full">Login</Button>
+                <Button variant="outline" className="w-full border-[#111827] text-[#111827] hover:bg-gray-50 rounded-none">
+                  Login
+                </Button>
               </Link>
               <Link href="/register" className="w-full">
-                <Button className="w-full">Register</Button>
+                <Button className="w-full bg-[#111827] hover:bg-[#1f2937] rounded-none">
+                  Register
+                </Button>
               </Link>
             </div>
           </div>
