@@ -182,10 +182,10 @@ export default function PropertiesGrid() {
         <button
           key={i}
           onClick={() => goToPage(i)}
-          className={`py-2 px-4 border-t border-b border-gray-300 bg-white ${
+          className={`py-2.5 px-5 border border-gray-200 ${
             i === currentPage
-              ? 'text-indigo-600 font-medium'
-              : 'text-gray-700 hover:bg-gray-50'
+              ? 'bg-[#111827] text-white'
+              : 'text-gray-600 hover:border-gray-400 transition-colors'
           }`}
         >
           {i}
@@ -196,26 +196,26 @@ export default function PropertiesGrid() {
     return items;
   };
 
-  // Loading state
+  // Loading state - Minimalist and Elegant
   if (loading && properties.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="h-12 w-12 animate-spin text-gray-400" />
-        <p className="mt-4 text-gray-600">Loading properties...</p>
+      <div className="flex flex-col items-center justify-center py-24">
+        <Loader2 className="h-10 w-10 animate-spin text-gray-400" />
+        <p className="mt-6 text-gray-500 text-sm">Loading properties...</p>
       </div>
     );
   }
 
-  // Error state
+  // Error state - Minimalist and Elegant
   if (error && properties.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Properties</h3>
-          <p className="text-red-700">{error}</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="border border-gray-200 p-12 max-w-md">
+          <h3 className="text-lg font-light text-[#111827] mb-2">Unable to Load Properties</h3>
+          <p className="text-gray-500 mb-6">{error}</p>
           <button
             onClick={() => fetchProperties(currentPage, filters)}
-            className="mt-4 bg-red-100 text-red-800 px-4 py-2 rounded-md hover:bg-red-200 transition-colors"
+            className="border border-[#111827] px-6 py-2 text-sm text-[#111827] hover:bg-[#111827] hover:text-white transition-colors"
           >
             Try Again
           </button>
@@ -226,17 +226,21 @@ export default function PropertiesGrid() {
 
   return (
     <>
-      {/* Filters Sidebar */}
+      {/* Filters Sidebar - Minimalist and Elegant */}
       <div className="lg:col-span-1">
-        <div className="bg-white p-6 rounded-lg shadow-md sticky top-24 border border-gray-100">
-          <h2 className="text-xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-            Filter Properties
-          </h2>
+        <div className="bg-white p-8 sticky top-24 border border-gray-100">
+          <div className="mb-8">
+            <span className="text-xs uppercase tracking-widest text-gray-500 block mb-2">Refine Search</span>
+            <h2 className="text-xl font-light text-[#111827]">
+              Filter Properties
+            </h2>
+            <div className="mt-2 w-12 h-px bg-[#111827]"></div>
+          </div>
 
           {/* Price Range */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3 text-gray-800">Price Range</h3>
-            <div className="space-y-2">
+          <div className="mb-8">
+            <h3 className="text-sm font-medium mb-4 text-gray-800">Price Range</h3>
+            <div className="space-y-3">
               <div className="flex items-center">
                 <input
                   type="range"
@@ -247,7 +251,7 @@ export default function PropertiesGrid() {
                   className="w-full accent-[#111827]"
                 />
               </div>
-              <div className="flex justify-between text-sm text-gray-600">
+              <div className="flex justify-between text-xs text-gray-500">
                 <span>$0</span>
                 <span>${filters.maxPrice}</span>
               </div>
@@ -255,36 +259,38 @@ export default function PropertiesGrid() {
           </div>
 
           {/* Property Type */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3 text-gray-800">Property Type</h3>
-            <div className="space-y-2">
+          <div className="mb-8">
+            <h3 className="text-sm font-medium mb-4 text-gray-800">Property Type</h3>
+            <div className="space-y-3">
               {['apartment', 'house', 'villa', 'studio', 'duplex', 'townhouse'].map((type) => (
-                <label key={type} className="flex items-center">
+                <label key={type} className="flex items-center group cursor-pointer">
                   <input
                     type="checkbox"
                     checked={filters.propertyTypes.includes(type)}
                     onChange={() => handlePropertyTypeChange(type)}
                     className="rounded border-gray-300 text-[#111827] focus:ring-[#1f2937]"
                   />
-                  <span className="ml-2 text-gray-600">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                  <span className="ml-2 text-sm text-gray-600 group-hover:text-[#111827] transition-colors">
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </span>
                 </label>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-2">Note: Currently only one property type filter can be applied at a time.</p>
+            <p className="text-xs text-gray-400 mt-2 italic">Note: Currently only one property type filter can be applied at a time.</p>
           </div>
 
           {/* Bedrooms */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3 text-gray-800">Bedrooms</h3>
-            <div className="grid grid-cols-5 gap-2">
+          <div className="mb-8">
+            <h3 className="text-sm font-medium mb-4 text-gray-800">Bedrooms</h3>
+            <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
                   onClick={() => handleFilterChange('bedrooms', filters.bedrooms === num ? null : num)}
-                  className={`py-1 px-2 border rounded-md text-gray-700 transition-colors ${
+                  className={`py-1.5 px-3 text-sm transition-colors ${
                     filters.bedrooms === num
-                      ? 'bg-indigo-100 border-indigo-500'
-                      : 'border-gray-300 hover:bg-indigo-50 hover:border-indigo-500'
+                      ? 'bg-[#111827] text-white'
+                      : 'border border-gray-200 text-gray-700 hover:border-gray-400'
                   }`}
                 >
                   {num === 5 ? '5+' : num}
@@ -294,17 +300,17 @@ export default function PropertiesGrid() {
           </div>
 
           {/* Bathrooms */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3 text-gray-800">Bathrooms</h3>
-            <div className="grid grid-cols-5 gap-2">
+          <div className="mb-8">
+            <h3 className="text-sm font-medium mb-4 text-gray-800">Bathrooms</h3>
+            <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
                   onClick={() => handleFilterChange('bathrooms', filters.bathrooms === num ? null : num)}
-                  className={`py-1 px-2 border rounded-md text-gray-700 transition-colors ${
+                  className={`py-1.5 px-3 text-sm transition-colors ${
                     filters.bathrooms === num
-                      ? 'bg-indigo-100 border-indigo-500'
-                      : 'border-gray-300 hover:bg-indigo-50 hover:border-indigo-500'
+                      ? 'bg-[#111827] text-white'
+                      : 'border border-gray-200 text-gray-700 hover:border-gray-400'
                   }`}
                 >
                   {num === 5 ? '5+' : num}
@@ -316,7 +322,7 @@ export default function PropertiesGrid() {
           {/* Apply Filters Button */}
           <button
             onClick={applyFilters}
-            className="w-full bg-gradient-to-r from-[#111827] to-[#1f2937] text-white py-2 px-4 rounded-md hover:opacity-90 transition-opacity flex items-center justify-center"
+            className="w-full border border-[#111827] bg-[#111827] text-white py-2.5 px-4 hover:bg-[#1f2937] transition-colors flex items-center justify-center"
             disabled={loading}
           >
             {loading ? (
@@ -332,25 +338,28 @@ export default function PropertiesGrid() {
           {/* Reset Filters */}
           <button
             onClick={resetFilters}
-            className="w-full mt-2 text-indigo-600 text-sm hover:underline"
+            className="w-full mt-3 py-2 border border-gray-200 text-gray-600 text-sm hover:border-gray-400 transition-colors"
           >
-            Reset Filters
+            Reset All Filters
           </button>
         </div>
       </div>
 
-      {/* Properties Grid */}
+      {/* Properties Grid - Minimalist and Elegant */}
       <div className="lg:col-span-3">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-            {totalProperties} Properties Available
-          </h2>
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600">Sort by:</span>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 space-y-4 md:space-y-0">
+          <div>
+            <span className="text-xs uppercase tracking-widest text-gray-500 block mb-1">Available Listings</span>
+            <h2 className="text-2xl font-light text-[#111827]">
+              {totalProperties} Properties
+            </h2>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-500">Sort by:</span>
             <select
               value={filters.sortBy}
               onChange={handleSortChange}
-              className="border border-gray-300 rounded-md py-1 px-3 focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-[#111827]"
+              className="border border-gray-200 py-2 px-4 text-sm focus:outline-none focus:border-gray-400 transition-colors"
             >
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
@@ -366,12 +375,12 @@ export default function PropertiesGrid() {
         )}
 
         {properties.length === 0 && !loading ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No properties found</h3>
-            <p className="text-gray-500 mb-4">Try adjusting your filters to see more results.</p>
+          <div className="border border-gray-200 p-12 text-center">
+            <h3 className="text-lg font-light text-[#111827] mb-2">No properties found</h3>
+            <p className="text-gray-500 mb-6">Try adjusting your filters to see more results.</p>
             <button
               onClick={resetFilters}
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
+              className="border border-[#111827] px-6 py-2 text-sm text-[#111827] hover:bg-[#111827] hover:text-white transition-colors"
             >
               Reset all filters
             </button>
@@ -379,87 +388,94 @@ export default function PropertiesGrid() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {properties.map((property) => (
-              <div
+              <Link
+                href={`/properties/${property.id}`}
                 key={property.id}
-                className="bg-white rounded-lg shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl border border-gray-100"
+                className="group block"
               >
-                <div className="relative h-56 w-full">
-                  <Image
-                    src={property.primary_image ?
-                      (property.primary_image.startsWith('http') ?
-                        property.primary_image :
-                        `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:8001'}${property.primary_image}`
-                      ) :
-                      '/images/property-placeholder.jpg'
-                    }
-                    alt={property.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ objectFit: 'cover' }}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = '/images/property-placeholder.jpg';
-                    }}
-                  />
-                  {property.status === 'approved' && (
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Available
+                <div className="relative overflow-hidden border border-gray-200 transition-all duration-300 hover:border-gray-400">
+                  {/* Image container with subtle hover effect */}
+                  <div className="relative h-64 w-full overflow-hidden">
+                    {/* Elegant border that appears on hover */}
+                    <div className="absolute inset-0 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+
+                    <Image
+                      src={property.primary_image ?
+                        (property.primary_image.startsWith('http') ?
+                          property.primary_image :
+                          `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:8001'}${property.primary_image}`
+                        ) :
+                        '/images/property-placeholder.jpg'
+                      }
+                      alt={property.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="transition-transform duration-1000 ease-out group-hover:scale-105"
+                      style={{ objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/images/property-placeholder.jpg';
+                      }}
+                    />
+
+                    {/* Elegant gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
+
+                    {/* Status badge */}
+                    {property.status === 'approved' && (
+                      <div className="absolute top-4 right-4 border border-white/30 backdrop-blur-sm px-3 py-1 text-white text-xs z-10">
+                        Available
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content with minimalist design */}
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-light text-[#111827]">{property.title}</h3>
+                      <p className="text-[#111827] font-medium">
+                        ${property.price_per_night}<span className="text-gray-500 text-xs ml-1">/night</span>
+                      </p>
                     </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1 hover:text-[#111827] transition-colors">
-                    {property.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-2 flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {property.city}, {property.state}, {property.country}
-                  </p>
-                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                    <span className="flex items-center">
-                      <BedDouble className="h-4 w-4 mr-1" />
-                      {property.bedrooms} Beds
-                    </span>
-                    <span className="flex items-center">
-                      <Bath className="h-4 w-4 mr-1" />
-                      {property.bathrooms} Baths
-                    </span>
-                    <span className="flex items-center">
-                      <Square className="h-4 w-4 mr-1" />
-                      {property.area} sq ft
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-[#111827] font-bold text-lg">
-                      ${property.price_per_night}<span className="text-gray-500 text-sm">/night</span>
+
+                    <p className="text-sm text-gray-500 mb-4 flex items-center">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {property.city}, {property.country}
                     </p>
-                    <Link href={`/properties/${property.id}`}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white transition-colors"
-                      >
-                        View Details
-                      </Button>
-                    </Link>
+
+                    {/* Property features with minimal styling */}
+                    <div className="flex items-center gap-4 text-xs text-gray-600 border-t border-gray-100 pt-4">
+                      <span className="flex items-center">
+                        <BedDouble className="h-3 w-3 mr-1" />
+                        {property.bedrooms} Beds
+                      </span>
+                      <span className="flex items-center">
+                        <Bath className="h-3 w-3 mr-1" />
+                        {property.bathrooms} Baths
+                      </span>
+                      <span className="flex items-center">
+                        <Square className="h-3 w-3 mr-1" />
+                        {property.area} sq ft
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
 
-        {/* Pagination */}
+        {/* Pagination - Minimalist and Elegant */}
         {totalPages > 1 && (
-          <div className="mt-10 flex justify-center">
-            <nav className="inline-flex rounded-md shadow">
+          <div className="mt-16 flex justify-center">
+            <nav className="inline-flex">
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`py-2 px-4 border border-gray-300 bg-white rounded-l-md ${
+                className={`py-2.5 px-5 border border-gray-200 ${
                   currentPage === 1
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:border-gray-400 transition-colors'
                 }`}
               >
                 Previous
@@ -470,10 +486,10 @@ export default function PropertiesGrid() {
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`py-2 px-4 border border-gray-300 bg-white rounded-r-md ${
+                className={`py-2.5 px-5 border border-gray-200 ${
                   currentPage === totalPages
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:border-gray-400 transition-colors'
                 }`}
               >
                 Next
