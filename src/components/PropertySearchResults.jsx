@@ -14,60 +14,59 @@ const PropertyCard = ({ property }) => {
   const location = `${property.city}, ${property.state}`;
 
   return (
-    <div className="group bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
-      {/* Image container with overlay on hover */}
-      <div className="relative h-52 w-full overflow-hidden">
+    <div className="group relative bg-white overflow-hidden transition-all duration-300 hover:translate-y-[-4px]">
+      {/* Elegant border that appears on hover */}
+      <div className="absolute inset-0 border-2 border-[#111827] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+
+      {/* Image container with subtle hover effect */}
+      <div className="relative h-64 w-full overflow-hidden">
         <PropertyImage
           src={property.primary_image}
           alt={property.title}
           fill
           style={{ objectFit: 'cover' }}
-          className="transition-transform duration-500 group-hover:scale-110"
+          className="transition-transform duration-700 ease-out group-hover:scale-105"
         />
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Quick view button that appears on hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Link href={`/properties/${property.id}`} className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            <Button variant="secondary" size="sm" className="bg-white/90 backdrop-blur-sm hover:bg-white">
-              Quick View
-            </Button>
-          </Link>
+        {/* Elegant gradient overlay that's always visible but intensifies on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent opacity-30 group-hover:opacity-40 transition-opacity duration-300" />
+
+        {/* Price tag positioned at top right */}
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 shadow-md z-10">
+          <span className="text-[#111827] font-medium">${property.price_per_night}</span>
+          <span className="text-gray-500 text-xs">/night</span>
         </div>
-      </div>
 
-      <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">{property.title}</h3>
-        <p className="text-sm text-gray-500 mb-3 flex items-center">
-          <MapPin className="h-4 w-4 mr-1 text-gray-700 flex-shrink-0" />
-          <span className="truncate">{location}</span>
-        </p>
-
-        {/* Property features in a more compact, elegant layout */}
-        <div className="flex items-center justify-between mb-4 bg-gray-50 p-2 rounded-lg">
-          <div className="flex items-center text-gray-600 text-xs">
-            <BedDouble className="h-3.5 w-3.5 mr-1 text-gray-700" />
-            <span className="mr-2">{property.bedrooms}</span>
+        {/* Property features as minimal badges at bottom of image */}
+        <div className="absolute bottom-4 left-4 right-4 flex space-x-3 z-10">
+          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
+            <BedDouble className="h-3 w-3 mr-1 text-[#111827]" />
+            <span>{property.bedrooms}</span>
           </div>
-          <div className="flex items-center text-gray-600 text-xs">
-            <Bath className="h-3.5 w-3.5 mr-1 text-gray-700" />
-            <span className="mr-2">{property.bathrooms}</span>
+          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
+            <Bath className="h-3 w-3 mr-1 text-[#111827]" />
+            <span>{property.bathrooms}</span>
           </div>
-          <div className="flex items-center text-gray-600 text-xs">
-            <Square className="h-3.5 w-3.5 mr-1 text-gray-700" />
+          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
+            <Square className="h-3 w-3 mr-1 text-[#111827]" />
             <span>{property.square_feet} ft²</span>
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <div className="text-gray-900 font-bold">
-            ${property.price_per_night}<span className="text-gray-500 font-normal text-sm">/night</span>
-          </div>
-          <Link href={`/properties/${property.id}`}>
-            <Button variant="outline" size="sm" className="text-xs px-3 py-1 h-auto">Details</Button>
-          </Link>
-        </div>
+      {/* Content section with minimal styling */}
+      <div className="p-5 border-b border-l border-r border-gray-100">
+        <h3 className="text-base font-medium text-[#111827] mb-1.5 truncate">{property.title}</h3>
+        <p className="text-sm text-gray-500 flex items-center mb-4">
+          <MapPin className="h-3.5 w-3.5 mr-1.5 text-gray-400 flex-shrink-0" />
+          <span className="truncate">{location}</span>
+        </p>
+
+        {/* View details link with animated arrow */}
+        <Link href={`/properties/${property.id}`} className="inline-flex items-center text-sm text-[#111827] font-medium group/link">
+          <span>View details</span>
+          <span className="ml-1.5 transition-transform duration-300 group-hover/link:translate-x-1">→</span>
+        </Link>
       </div>
     </div>
   );
@@ -130,46 +129,52 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
 
   return (
     <div className="w-full">
-      {/* Header with elegant heading and sort */}
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">
-          Featured Properties
-        </h2>
-        <div className="flex items-center space-x-3">
-          <span className="text-gray-600 hidden sm:inline font-medium">Sort by:</span>
+      {/* Refined header with elegant heading and sort */}
+      <div className="mb-12">
+        <div className="flex justify-between items-end">
           <div className="relative">
-            <select
-              value={sortBy}
-              onChange={handleSortChange}
-              className="appearance-none bg-white border border-gray-300 rounded-lg py-2 pl-4 pr-10 text-sm font-medium text-gray-700 shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#111827] focus:border-[#111827] transition-all duration-200"
-            >
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="newest">Newest First</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
+            <h2 className="text-3xl font-light text-[#111827] relative inline-block">
+              Featured Properties
+              <span className="absolute -bottom-3 left-0 w-1/2 h-0.5 bg-[#111827]"></span>
+            </h2>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-gray-600 hidden sm:inline text-sm">Sort by:</span>
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={handleSortChange}
+                className="appearance-none bg-transparent border-b border-gray-300 py-1 pl-2 pr-8 text-sm text-[#111827] hover:border-[#111827] focus:outline-none focus:border-[#111827] transition-all duration-200"
+              >
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="newest">Newest First</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center text-[#111827]">
+                <ArrowUpDown className="h-3.5 w-3.5" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Loading state */}
+      {/* Elegant loading state */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="flex flex-col items-center">
-            <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-            <p className="text-gray-500">Loading properties...</p>
+            <div className="relative w-12 h-12 mb-4">
+              <div className="absolute top-0 left-0 w-full h-full border-2 border-gray-200 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-full h-full border-t-2 border-l-2 border-[#111827] rounded-full animate-spin"></div>
+            </div>
+            <p className="text-sm text-gray-500 tracking-wide">Loading curated properties...</p>
           </div>
         </div>
       ) : error ? (
-        <div className="text-center py-10">
-          <p className="text-red-500">{error}</p>
+        <div className="text-center py-16 max-w-md mx-auto">
+          <p className="text-red-500 mb-4">{error}</p>
           <button
             onClick={() => fetchProperties()}
-            className="mt-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            className="px-6 py-2 border border-[#111827] text-[#111827] hover:bg-[#111827] hover:text-white transition-colors duration-300"
           >
             Try Again
           </button>
@@ -194,13 +199,17 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
         </div>
       )}
 
-      {/* View All Properties Link */}
+      {/* View All Properties Link - Elegant minimalist design */}
       {properties.length > 0 && (
-        <div className="mt-8 text-center">
-          <Link href="/properties">
-            <Button variant="outline" className="px-6">
-              View All Properties
-            </Button>
+        <div className="mt-16 text-center">
+          <Link href="/properties" className="inline-block group">
+            <div className="relative overflow-hidden">
+              <div className="border border-[#111827] px-8 py-3 flex items-center justify-center space-x-2 transition-all duration-300 group-hover:bg-[#111827] group-hover:text-white">
+                <span className="text-sm font-medium">View All Properties</span>
+                <span className="transform transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </div>
+              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#111827] transition-all duration-500 group-hover:w-full"></div>
+            </div>
           </Link>
         </div>
       )}

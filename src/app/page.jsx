@@ -6,6 +6,7 @@ import HeroAlt from '@/components/HeroAlt.jsx'
 import PropertySearchResults from '@/components/PropertySearchResults.jsx'
 import HowItWorks from '@/components/HowItWorks.jsx'
 import PopularDestinations from '@/components/PopularDestinations.jsx'
+import PropertyShowcase from '@/components/PropertyShowcase.jsx'
 
 // Featured property categories for quick navigation in Rwanda
 const propertyCategories = [
@@ -77,6 +78,7 @@ export default function Home() {
       </div>
 
       <HowItWorks />
+      <PropertyShowcase />
       <PopularDestinations />
     </>
   )

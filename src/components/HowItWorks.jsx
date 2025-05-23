@@ -1,32 +1,32 @@
-import { Search, Home, Key } from 'lucide-react'
+import { Search, Home, Key, Calendar, FileCheck, Shield } from 'lucide-react'
 
 const steps = [
   {
     id: 1,
     title: 'Search Properties',
-    description: 'Browse our extensive collection of rental properties. Use filters to find exactly what you need.',
+    description: 'Browse our curated collection of premium rental properties in Rwanda. Use advanced filters to find your ideal home based on location, price, and amenities.',
     icon: Search,
     color: 'bg-gray-100 text-gray-600',
   },
   {
     id: 2,
     title: 'Book a Viewing',
-    description: 'Found a property you like? Schedule a viewing online or contact the property owner directly.',
-    icon: Home,
+    description: 'Schedule an in-person or virtual viewing with our responsive property owners. Get all your questions answered before making any decisions.',
+    icon: Calendar,
     color: 'bg-gray-100 text-gray-600',
   },
   {
     id: 3,
     title: 'Move In',
-    description: 'Complete the rental agreement, pay your deposit, and get the keys to your new home.',
+    description: 'Complete the secure online rental agreement, make your payment, and receive the keys to your new Rwandan home. Our support team is available throughout the process.',
     icon: Key,
-    color: 'bg-pink-100 text-pink-600',
+    color: 'bg-gray-100 text-gray-600',
   },
 ]
 
 const StepCard = ({ step }) => {
   const Icon = step.icon
-  
+
   return (
     <div className="flex flex-col items-center text-center p-6 bg-white rounded-xl shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl border-t-4 border-[#111827]">
       <div className={`bg-gradient-to-r from-[#111827] to-[#1f2937] text-white p-5 rounded-full mb-6 shadow-inner`}>
@@ -46,16 +46,16 @@ const HowItWorks = () => {
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">How It Works</h2>
           <div className="w-24 h-1 bg-gradient-to-r from-[#111827] to-[#1f2937] mx-auto mt-2 mb-6 rounded-full"></div>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Finding and renting your perfect home is easy with our simple three-step process.
+            Finding and renting your perfect home in Rwanda is simple and secure with our streamlined three-step process.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step) => (
             <StepCard key={step.id} step={step} />
           ))}
         </div>
-        
+
         {/* <div className="mt-20 bg-gradient-to-r from-[#111827] to-[#1f2937] rounded-xl p-10 text-center shadow-xl">
           <h3 className="text-2xl font-bold mb-4 text-white">Need Help?</h3>
           <p className="text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
