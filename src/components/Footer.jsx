@@ -4,17 +4,6 @@ import { cn } from '@/lib/utils'
 const Footer = ({ className }) => {
   return (
     <footer className={cn("relative bg-gradient-to-b from-[#111827] to-[#1f2937] text-white", className)}>
-      {/* Decorative overlay */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <pattern id="footer-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse">
-              <circle id="pattern-circle" cx="10" cy="10" r="2" fill="#FFF"></circle>
-            </pattern>
-            <rect x="0" y="0" width="100%" height="100%" fill="url(#footer-pattern)"></rect>
-          </svg>
-        </div>
-      </div>
 
       <div className="relative container-responsive py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
