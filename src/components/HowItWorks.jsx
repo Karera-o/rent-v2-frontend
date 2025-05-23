@@ -40,7 +40,7 @@ const StepCard = ({ step }) => {
 
 const HowItWorks = () => {
   return (
-    <section className="py-20 bg-gradient-to-b from-[#111827]/5 to-white">
+    <section className="pt-20 bg-gradient-to-b from-[#111827]/5 to-white">
       <div className="container-responsive">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#111827] to-[#1f2937]">How It Works</h2>
@@ -56,7 +56,7 @@ const HowItWorks = () => {
           ))}
         </div>
         
-        <div className="mt-20 bg-gradient-to-r from-[#111827] to-[#1f2937] rounded-xl p-10 text-center shadow-xl">
+        {/* <div className="mt-20 bg-gradient-to-r from-[#111827] to-[#1f2937] rounded-xl p-10 text-center shadow-xl">
           <h3 className="text-2xl font-bold mb-4 text-white">Need Help?</h3>
           <p className="text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed">
             Our team is always ready to assist you with any questions you might have about the rental process.
@@ -67,7 +67,7 @@ const HowItWorks = () => {
             </svg>
             <span className="font-medium">Call us at (123) 456-7890</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   )
