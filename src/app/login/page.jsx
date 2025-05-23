@@ -94,11 +94,13 @@ export default function LoginPage() {
       {/* Left side - Form */}
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-800">
+          <div className="text-center mb-10">
+            <span className="text-xs uppercase tracking-widest text-gray-500 mb-3 block">Account Access</span>
+            <h1 className="text-3xl font-light text-[#111827] relative inline-block">
               Welcome Back
             </h1>
-            <p className="text-gray-600">
+            <div className="mt-4 mx-auto w-16 h-px bg-[#111827]"></div>
+            <p className="mt-6 text-base text-gray-600 leading-relaxed">
               Sign in to access your account and continue your home search journey
             </p>
           </div>
@@ -210,10 +212,9 @@ export default function LoginPage() {
             <div>
               <Button
                 type="submit"
-                className="w-full relative overflow-hidden group"
+                className="w-full bg-[#111827] hover:bg-[#1f2937] text-white py-3 rounded-none transition-all duration-300"
                 disabled={isLoading}
               >
-                <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -255,18 +256,22 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Image and animation */}
-      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden">
+      <div className="hidden md:block md:w-1/2 bg-gradient-to-b from-[#111827] to-[#1f2937] relative overflow-hidden">
         <div className="absolute inset-0 bg-pattern opacity-10"></div>
 
-        {/* Animated circles */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white opacity-10 rounded-full animate-float"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-white opacity-10 rounded-full animate-float-delay"></div>
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white opacity-10 rounded-full animate-float-delay-long"></div>
+        {/* Simplified animated elements for consistency */}
+        <div className="absolute top-1/4 left-1/4 w-16 h-px bg-white/40"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-16 h-px bg-white/40"></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-px bg-white/40"></div>
 
         <div className="absolute inset-0 flex items-center justify-center p-10">
           <div className="max-w-md text-white">
-            <h2 className="text-3xl font-bold mb-6">Find Your Dream Home</h2>
-            <p className="mb-8 text-white/80">
+            <span className="text-xs uppercase tracking-widest text-gray-300 mb-3 block">Rental Platform</span>
+            <h2 className="text-3xl font-light text-white relative inline-block">
+              Find Your Dream Home
+            </h2>
+            <div className="mt-4 w-16 h-px bg-white/40"></div>
+            <p className="mt-6 text-base text-gray-300 leading-relaxed">
               Join thousands of satisfied renters who found their perfect home with our platform.
               Sign in to access personalized recommendations, saved properties, and more.
             </p>

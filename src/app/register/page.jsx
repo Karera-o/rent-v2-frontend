@@ -310,11 +310,13 @@ export default function RegisterPage() {
       {/* Left side - Form */}
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-800">
+          <div className="text-center mb-10">
+            <span className="text-xs uppercase tracking-widest text-gray-500 mb-3 block">New Account</span>
+            <h1 className="text-3xl font-light text-[#111827] relative inline-block">
               Create Your Account
             </h1>
-            <p className="text-gray-600">
+            <div className="mt-4 mx-auto w-16 h-px bg-[#111827]"></div>
+            <p className="mt-6 text-base text-gray-600 leading-relaxed">
               Join our community and find your perfect rental home
             </p>
           </div>
@@ -582,16 +584,15 @@ export default function RegisterPage() {
                     type="button"
                     onClick={handlePrevStep}
                     variant="outline"
-                    className="w-1/2"
+                    className="w-1/2 border-[#111827] text-[#111827] hover:bg-gray-50 rounded-none"
                   >
                     Back
                   </Button>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="w-1/2 relative overflow-hidden group"
+                    className="w-1/2 bg-[#111827] hover:bg-[#1f2937] text-white py-3 rounded-none transition-all duration-300"
                   >
-                    <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                     Continue
                   </Button>
                 </div>
@@ -671,7 +672,7 @@ export default function RegisterPage() {
                     type="button"
                     onClick={handlePrevStep}
                     variant="outline"
-                    className="w-1/2"
+                    className="w-1/2 border-[#111827] text-[#111827] hover:bg-gray-50 rounded-none"
                   >
                     Back
                   </Button>
@@ -681,9 +682,8 @@ export default function RegisterPage() {
                       console.log('Continue button clicked on step 3');
                       handleNextStep();
                     }}
-                    className="w-1/2 relative overflow-hidden group"
+                    className="w-1/2 bg-[#111827] hover:bg-[#1f2937] text-white py-3 rounded-none transition-all duration-300"
                   >
-                    <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                     Continue
                   </Button>
                 </div>
@@ -771,20 +771,19 @@ export default function RegisterPage() {
                     type="button"
                     onClick={handlePrevStep}
                     variant="outline"
-                    className="w-1/2"
+                    className="w-1/2 border-[#111827] text-[#111827] hover:bg-gray-50 rounded-none"
                   >
                     Back
                   </Button>
                   <Button
                     type="submit"
-                    className="w-1/2 relative overflow-hidden group"
+                    className="w-1/2 bg-[#111827] hover:bg-[#1f2937] text-white py-3 rounded-none transition-all duration-300"
                     disabled={isLoading}
                     onClick={(e) => {
                       console.log('Create Account button clicked');
                       // The form's onSubmit handler will be called
                     }}
                   >
-                    <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
                     {isLoading ? (
                       <div className="flex items-center justify-center">
                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -828,22 +827,26 @@ export default function RegisterPage() {
       </div>
 
       {/* Right side - Image and animation */}
-      <div className="hidden md:block md:w-1/2 bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden">
+      <div className="hidden md:block md:w-1/2 bg-gradient-to-b from-[#111827] to-[#1f2937] relative overflow-hidden">
         <div className="absolute inset-0 bg-pattern opacity-10"></div>
 
-        {/* Animated elements */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white opacity-10 rounded-full animate-float"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-white opacity-10 rounded-full animate-float-delay"></div>
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white opacity-10 rounded-full animate-float-delay-long"></div>
+        {/* Simplified animated elements for consistency */}
+        <div className="absolute top-1/4 left-1/4 w-16 h-px bg-white/40"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-16 h-px bg-white/40"></div>
+        <div className="absolute top-1/2 right-1/3 w-16 h-px bg-white/40"></div>
 
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 w-20 h-20 border-4 border-white opacity-20 rounded-lg transform rotate-12"></div>
-        <div className="absolute bottom-20 left-20 w-16 h-16 border-4 border-white opacity-20 rounded-full"></div>
+        {/* Simplified decorative elements */}
+        <div className="absolute top-20 right-20 w-16 h-px bg-white/40"></div>
+        <div className="absolute bottom-20 left-20 w-16 h-px bg-white/40"></div>
 
         <div className="absolute inset-0 flex items-center justify-center p-10">
           <div className="max-w-md text-white">
-            <h2 className="text-3xl font-bold mb-6">Join Our Community</h2>
-            <p className="mb-8 text-white/80">
+            <span className="text-xs uppercase tracking-widest text-gray-300 mb-3 block">Get Started</span>
+            <h2 className="text-3xl font-light text-white relative inline-block">
+              Join Our Community
+            </h2>
+            <div className="mt-4 w-16 h-px bg-white/40"></div>
+            <p className="mt-6 text-base text-gray-300 leading-relaxed">
               Create an account to unlock all features of our platform. Save your favorite properties,
               get personalized recommendations, and connect with landlords or tenants.
             </p>
