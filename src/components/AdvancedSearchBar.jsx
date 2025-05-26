@@ -248,7 +248,37 @@ const AdvancedSearchBar = ({ className, variant = "default", onSearchResults, on
       bedrooms: null,
       bathrooms: null
     });
+    
+    // Close filters panel if open
     setActiveFilter(null);
+    
+    // If we're on the search results page and have a callback, trigger a new search
+    if (onSearchResults) {
+      // Notify parent that search is starting
+      if (onSearchStart) {
+        onSearchStart();
+      }
+      
+      // Small delay to ensure state is updated before search
+      setTimeout(() => {
+        // Use empty search params to get default results
+        PropertyService.getAllProperties({
+          page: 1,
+          page_size: 8
+        }).then(response => {
+          if (onSearchResults) {
+            onSearchResults(response);
+          }
+        }).catch(error => {
+          console.error('Error fetching properties after reset:', error);
+          toast({
+            title: "Search failed",
+            description: "Failed to refresh properties. Please try again.",
+            variant: "destructive",
+          });
+        });
+      }, 100);
+    }
   };
 
   // Close suggestions when clicking outside
@@ -276,6 +306,27 @@ const AdvancedSearchBar = ({ className, variant = "default", onSearchResults, on
     : variant === "minimal"
       ? "bg-transparent"
       : "bg-transparent";
+
+  // Check if any filters are applied
+  const hasActiveFilters = () => {
+    return (
+      location !== '' || 
+      filters.propertyType !== '' || 
+      filters.bedrooms !== null || 
+      filters.minPrice > 0 || 
+      filters.maxPrice < 5000
+    );
+  };
+
+  // Count active filters
+  const countActiveFilters = () => {
+    let count = 0;
+    if (location !== '') count++;
+    if (filters.propertyType !== '') count++;
+    if (filters.bedrooms !== null) count++;
+    if (filters.minPrice > 0 || filters.maxPrice < 5000) count++;
+    return count;
+  };
 
   return (
     <div className={`${containerStyles} ${className}`}>
@@ -326,17 +377,33 @@ const AdvancedSearchBar = ({ className, variant = "default", onSearchResults, on
 
         {/* Filters Button with minimal design */}
         <div className="p-4 md:p-6 md:pl-8">
-          <label className="block text-xs uppercase tracking-wider text-gray-500 mb-2">Filters</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs uppercase tracking-wider text-gray-500">Filters</label>
+            {hasActiveFilters() && (
+              <button 
+                onClick={resetFilters}
+                className="text-xs text-[#111827] hover:underline flex items-center"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
           <Button
             variant="outline"
             onClick={handleFilterClick}
-            className="w-full justify-between border-gray-200 hover:border-[#111827] transition-colors duration-200 bg-transparent"
+            className={`w-full justify-between border-gray-200 hover:border-[#111827] transition-all duration-200 bg-transparent ${
+              hasActiveFilters() 
+                ? 'border-[#111827]' 
+                : ''
+            }`}
           >
             <div className="flex items-center">
-              <Filter className="h-3.5 w-3.5 mr-2 text-gray-500" />
-              <span className="text-sm text-gray-700">Add filters</span>
+              <Filter className={`h-3.5 w-3.5 mr-2 ${hasActiveFilters() ? 'text-[#111827]' : 'text-gray-500'}`} />
+              <span className={`text-sm ${hasActiveFilters() ? 'text-[#111827] font-medium' : 'text-gray-700'}`}>
+                {hasActiveFilters() ? `Filters (${countActiveFilters()})` : 'Add filters'}
+              </span>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 ml-2 opacity-50" />
+            <ChevronDown className={`h-3.5 w-3.5 ${hasActiveFilters() ? 'text-[#111827]' : 'text-gray-400'}`} />
           </Button>
         </div>
 
@@ -434,8 +501,18 @@ const AdvancedSearchBar = ({ className, variant = "default", onSearchResults, on
             </div>
           </div>
 
-          {/* Apply Button with elegant styling */}
-          <div className="mt-10 flex justify-end">
+          {/* Action buttons with elegant styling */}
+          <div className="mt-10 flex justify-between items-center">
+            {/* Clear Filters Button */}
+            <Button
+              onClick={resetFilters}
+              variant="outline"
+              className="border border-gray-200 text-gray-500 hover:text-[#111827] hover:border-[#111827] transition-all duration-300"
+            >
+              <span className="text-sm">Clear Filters</span>
+            </Button>
+            
+            {/* Apply Button */}
             <Button
               onClick={handleSearch}
               disabled={loading}
