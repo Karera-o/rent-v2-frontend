@@ -119,15 +119,38 @@ export const StripeProvider = ({ children }) => {
   // Create a payment intent for a booking
   const createPaymentIntent = async (bookingId, options = {}) => {
     try {
+      // Check if we have a cached payment intent for this booking ID
+      const cachedIntentKey = `payment_intent_${bookingId}`;
+      if (typeof window !== 'undefined') {
+        const cachedIntent = localStorage.getItem(cachedIntentKey);
+        if (cachedIntent) {
+          try {
+            const parsedIntent = JSON.parse(cachedIntent);
+            console.log('[StripeContext] Using cached payment intent for booking:', bookingId);
+            return parsedIntent;
+          } catch (e) {
+            console.error('[StripeContext] Error parsing cached intent:', e);
+            localStorage.removeItem(cachedIntentKey);
+          }
+        }
+      }
+      
       if (useMockImplementation) {
         // Return mock payment intent data
-        return {
-          id: 'mock_payment_intent_id',
+        const mockIntent = {
+          id: `mock_payment_intent_${bookingId}`,
           stripe_client_secret: 'mock_client_secret',
           amount: 1000,
           currency: 'usd',
           status: 'requires_payment_method'
         };
+        
+        // Cache the mock intent
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(cachedIntentKey, JSON.stringify(mockIntent));
+        }
+        
+        return mockIntent;
       }
       
       // Ensure we're passing the correct parameter name for saving payment methods
@@ -147,6 +170,11 @@ export const StripeProvider = ({ children }) => {
       if (!paymentIntentData.stripe_client_secret && paymentIntentData.client_secret) {
         // Format from the quick-intent endpoint to match our expected structure
         paymentIntentData.stripe_client_secret = paymentIntentData.client_secret;
+      }
+      
+      // Cache the payment intent
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(cachedIntentKey, JSON.stringify(paymentIntentData));
       }
       
       return paymentIntentData;
@@ -169,13 +197,21 @@ export const StripeProvider = ({ children }) => {
         }
         
         // Return mock data since we hit a rate limit
-        return {
-          id: 'mock_payment_intent_id',
+        const mockIntent = {
+          id: `mock_payment_intent_${bookingId}`,
           stripe_client_secret: 'mock_client_secret',
           amount: 1000,
           currency: 'usd',
           status: 'requires_payment_method'
         };
+        
+        // Cache the mock intent
+        if (typeof window !== 'undefined') {
+          const cachedIntentKey = `payment_intent_${bookingId}`;
+          localStorage.setItem(cachedIntentKey, JSON.stringify(mockIntent));
+        }
+        
+        return mockIntent;
       }
       
       throw err;
@@ -231,9 +267,24 @@ export const StripeProvider = ({ children }) => {
   // Method to reset storage and force reinitialization
   const resetStripeState = () => {
     if (typeof window !== 'undefined') {
+      // Clear Stripe configuration
       localStorage.removeItem('stripe_publishable_key');
       localStorage.removeItem('stripe_rate_limited');
       localStorage.removeItem('force_mock_stripe');
+      
+      // Clear all cached payment intents
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('payment_intent_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      // Remove the keys in a separate loop to avoid index issues
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      console.log('[StripeContext] Reset completed. Cleared configuration and cached intents');
     }
     window.location.reload();
   };

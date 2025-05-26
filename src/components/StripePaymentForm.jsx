@@ -118,10 +118,12 @@ export default function StripePaymentForm({
       }
     };
 
-    if (bookingId) {
+    // Only create the payment intent once when the component mounts
+    // and only if we don't already have one
+    if (bookingId && !paymentIntent) {
       getPaymentIntent();
     }
-  }, [bookingId, createPaymentIntent, onError, onProcessingChange, saveCard]);
+  }, [bookingId, createPaymentIntent, onError, onProcessingChange, saveCard, paymentIntent]);
 
   const handleCardChange = (event) => {
     console.log('[StripePaymentForm] Card input changed, complete:', event.complete);
