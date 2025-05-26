@@ -112,7 +112,8 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults =
       const response = await PropertyService.getAllProperties(searchParams);
 
       setProperties(response.results || []);
-      setTotalProperties(response.count || 0);
+      // Use the "total" field from the API response for total count
+      setTotalProperties(response.total || response.count || 0);
       setTotalPages(response.total_pages || 1);
       setCurrentPage(response.page || 1);
     } catch (error) {
@@ -132,7 +133,8 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults =
   useEffect(() => {
     if (searchResults) {
       setProperties(searchResults.results || []);
-      setTotalProperties(searchResults.count || 0);
+      // Use the "total" field from the API response for total count
+      setTotalProperties(searchResults.total || searchResults.count || 0);
       setTotalPages(searchResults.total_pages || 1);
       setCurrentPage(searchResults.page || 1);
       setLoading(false);
@@ -174,11 +176,9 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults =
               {categoryTitle ? `${categoryTitle}` : isFiltered || searchResults ? 'Search Results' : 'Featured Properties'}
               <span className="absolute -bottom-3 left-0 w-1/2 h-0.5 bg-[#111827]"></span>
             </h2>
-            {(isFiltered || searchResults || categoryTitle) && (
-              <p className="text-sm text-gray-500 mt-4">
-                {totalProperties} {totalProperties === 1 ? 'property' : 'properties'} found
-              </p>
-            )}
+            <p className="text-sm text-gray-500 mt-4">
+              {totalProperties} {totalProperties === 1 ? 'property' : 'properties'} found
+            </p>
           </div>
           <div className="flex items-center space-x-3">
             <span className="text-gray-600 hidden sm:inline text-sm">Sort by:</span>
