@@ -72,7 +72,7 @@ const PropertyCard = ({ property }) => {
   );
 };
 
-const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults = null, isSearching = false }) => {
+const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults = null, isSearching = false, categoryTitle = null }) => {
   const { toast } = useToast();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -169,14 +169,14 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults =
         <div className="flex justify-between items-end">
           <div className="relative">
             <h2 className="text-3xl font-light text-[#111827] relative inline-block">
-              {isFiltered || searchResults ? 'Search Results' : 'Featured Properties'}
+              {categoryTitle ? `${categoryTitle}` : isFiltered || searchResults ? 'Search Results' : 'Featured Properties'}
               <span className="absolute -bottom-3 left-0 w-1/2 h-0.5 bg-[#111827]"></span>
             </h2>
-            {isFiltered || searchResults ? (
+            {(isFiltered || searchResults || categoryTitle) && (
               <p className="text-sm text-gray-500 mt-4">
                 {totalProperties} {totalProperties === 1 ? 'property' : 'properties'} found
               </p>
-            ) : null}
+            )}
           </div>
           <div className="flex items-center space-x-3">
             <span className="text-gray-600 hidden sm:inline text-sm">Sort by:</span>
