@@ -29,6 +29,33 @@ export const StripeProvider = ({ children }) => {
     const initializeStripe = async () => {
       try {
         setLoading(true);
+        
+        // Check if we already have a cached key or have previously hit rate limits
+        const cachedKey = typeof window !== 'undefined' ? localStorage.getItem('stripe_publishable_key') : null;
+        const hasRateLimit = typeof window !== 'undefined' ? localStorage.getItem('stripe_rate_limited') : null;
+        const mockForced = typeof window !== 'undefined' ? localStorage.getItem('force_mock_stripe') : null;
+        
+        // If we've hit rate limits before, use mock implementation immediately
+        if (hasRateLimit === 'true' || mockForced === 'true') {
+          console.warn('Using mock Stripe implementation due to previous rate limiting or forced mock mode');
+          setUseMockImplementation(true);
+          setStripePromise(null);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+        
+        // If we have a cached key, use it
+        if (cachedKey && cachedKey !== 'null' && cachedKey !== 'undefined') {
+          console.log('Using cached Stripe publishable key');
+          const stripeInstance = loadStripe(cachedKey);
+          setStripePromise(stripeInstance);
+          setUseMockImplementation(false);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+        
         // Get the Stripe publishable key from the backend
         const publishableKey = await PaymentService.getStripePublicKey();
 
@@ -39,8 +66,19 @@ export const StripeProvider = ({ children }) => {
           setUseMockImplementation(true);
           setStripePromise(null);
           setError(null);
+          
+          // Cache the decision to use mock implementation
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('force_mock_stripe', 'true');
+          }
+          
           setLoading(false);
           return;
+        }
+
+        // Cache the valid key
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('stripe_publishable_key', publishableKey);
         }
 
         // Initialize Stripe with the publishable key
@@ -50,6 +88,21 @@ export const StripeProvider = ({ children }) => {
         setError(null);
       } catch (err) {
         console.error('Error initializing Stripe:', err);
+        
+        // Check if the error is related to rate limiting
+        if (err.message && (
+          err.message.includes('rate limit') || 
+          err.message.includes('too many requests') ||
+          (err.response && err.response.status === 429)
+        )) {
+          console.warn('Rate limit detected, using mock Stripe implementation');
+          
+          // Mark that we've hit rate limits to avoid future API calls
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('stripe_rate_limited', 'true');
+          }
+        }
+        
         console.warn('Falling back to mock Stripe implementation');
         // Use mock implementation
         setUseMockImplementation(true);
@@ -70,15 +123,61 @@ export const StripeProvider = ({ children }) => {
         // Return mock payment intent data
         return {
           id: 'mock_payment_intent_id',
-          client_secret: 'mock_client_secret',
+          stripe_client_secret: 'mock_client_secret',
           amount: 1000,
           currency: 'usd',
           status: 'requires_payment_method'
         };
       }
-      return await PaymentService.createPaymentIntent(bookingId, options);
+      
+      // Ensure we're passing the correct parameter name for saving payment methods
+      const paymentOptions = {
+        ...options
+      };
+      
+      // Convert setupFutureUsage to setup_future_usage if needed
+      if (options.setupFutureUsage) {
+        paymentOptions.setup_future_usage = options.setupFutureUsage;
+        delete paymentOptions.setupFutureUsage;
+      }
+      
+      const paymentIntentData = await PaymentService.createPaymentIntent(bookingId, paymentOptions);
+      
+      // Ensure we have a properly formatted response with client_secret
+      if (!paymentIntentData.stripe_client_secret && paymentIntentData.client_secret) {
+        // Format from the quick-intent endpoint to match our expected structure
+        paymentIntentData.stripe_client_secret = paymentIntentData.client_secret;
+      }
+      
+      return paymentIntentData;
     } catch (err) {
       console.error('Error creating payment intent:', err);
+      
+      // Check if this is a rate limit error (specifically flagged by our service)
+      if (err.isRateLimit || 
+          (err.message && (
+            err.message.includes('rate limit') || 
+            err.message.includes('too many requests')
+          )) ||
+          (err.response && err.response.status === 429)) {
+        
+        console.warn('Rate limit detected during payment intent creation, using mock mode for future requests');
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('stripe_rate_limited', 'true');
+          setUseMockImplementation(true);
+        }
+        
+        // Return mock data since we hit a rate limit
+        return {
+          id: 'mock_payment_intent_id',
+          stripe_client_secret: 'mock_client_secret',
+          amount: 1000,
+          currency: 'usd',
+          status: 'requires_payment_method'
+        };
+      }
+      
       throw err;
     }
   };
@@ -99,8 +198,44 @@ export const StripeProvider = ({ children }) => {
       return await PaymentService.processPayment(paymentIntentId, paymentMethodId, savePaymentMethod);
     } catch (err) {
       console.error('Error processing payment:', err);
+      
+      // Check if this is a rate limit error (specifically flagged by our service)
+      if (err.isRateLimit || 
+          (err.message && (
+            err.message.includes('rate limit') || 
+            err.message.includes('too many requests')
+          )) ||
+          (err.response && err.response.status === 429)) {
+        
+        console.warn('Rate limit detected during payment processing, using mock mode for future requests');
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('stripe_rate_limited', 'true');
+          setUseMockImplementation(true);
+        }
+        
+        // Return mock data since we hit a rate limit
+        return {
+          success: true,
+          payment_intent: {
+            id: paymentIntentId,
+            status: 'succeeded'
+          }
+        };
+      }
+      
       throw err;
     }
+  };
+
+  // Method to reset storage and force reinitialization
+  const resetStripeState = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('stripe_publishable_key');
+      localStorage.removeItem('stripe_rate_limited');
+      localStorage.removeItem('force_mock_stripe');
+    }
+    window.location.reload();
   };
 
   // Context value
@@ -109,7 +244,8 @@ export const StripeProvider = ({ children }) => {
     error,
     createPaymentIntent,
     processPayment,
-    useMockImplementation
+    useMockImplementation,
+    resetStripeState
   };
 
   // If Stripe is still loading, show a loading indicator

@@ -1,0 +1,322 @@
+# Stripe Payment Integration Guide for House Rental Platform
+
+This document outlines all the payment-related APIs, the required requests, and the expected responses for the complete payment flow.
+
+## 1. Get Stripe Public Key
+
+**Endpoint:** `GET /api/payments/public-key`  
+**Authentication:** None  
+**Request:** None  
+**Response:**
+```json
+{
+  "publishable_key": "pk_test_XXXXXXXX"
+}
+```
+**Purpose:** The frontend needs this key to initialize the Stripe SDK.
+
+## 2. Create Payment Intent
+
+**Endpoint:** `POST /api/payments/intents`  
+**Authentication:** JWT required  
+**Request:**
+```json
+{
+  "booking_id": 123,
+  "setup_future_usage": "off_session" // Optional, for saving card
+}
+```
+**Response:**
+```json
+{
+  "id": 1,
+  "booking": {
+    "id": 123,
+    "property": {
+      "id": 456,
+      "title": "Beach House"
+    },
+    "check_in_date": "2025-06-01T12:00:00Z",
+    "check_out_date": "2025-06-07T12:00:00Z"
+  },
+  "amount": 750.00,
+  "currency": "usd",
+  "status": "requires_payment_method",
+  "stripe_payment_intent_id": "pi_XXXXXXXX",
+  "stripe_client_secret": "pi_XXXXXXXX_secret_YYYYYYYY",
+  "created_at": "2025-05-26T16:00:00Z"
+}
+```
+**Purpose:** Creates a payment intent for authenticated users.
+
+## 3. Alternative: Quick Intent (For Guest Users)
+
+**Endpoint:** `POST /api/payments/quick-intent`  
+**Authentication:** None  
+**Request:**
+```json
+{
+  "booking_id": 123
+}
+```
+**Response:**
+```json
+{
+  "client_secret": "pi_XXXXXXXX_secret_YYYYYYYY",
+  "amount": 750.00,
+  "id": "pi_XXXXXXXX"
+}
+```
+**Purpose:** Simplified payment intent creation without authentication.
+
+## 4. Confirm Payment
+
+**Endpoint:** `POST /api/payments/confirm`  
+**Authentication:** JWT required  
+**Request:**
+```json
+{
+  "payment_intent_id": "pi_XXXXXXXX",       // REQUIRED - The Stripe payment intent ID
+  "payment_method_id": "pm_XXXXXXXX",       // OPTIONAL - Only needed if confirming with a new payment method
+  "save_payment_method": true               // OPTIONAL - Default is false
+}
+```
+**Response:**
+```json
+{
+  "id": 1,
+  "booking": {
+    "id": 123,
+    "property": {
+      "id": 456,
+      "title": "Beach House"
+    },
+    "check_in_date": "2025-06-01T12:00:00Z",
+    "check_out_date": "2025-06-07T12:00:00Z"
+  },
+  "amount": 750.00,
+  "currency": "usd",
+  "status": "succeeded",
+  "stripe_payment_intent_id": "pi_XXXXXXXX",
+  "stripe_client_secret": "pi_XXXXXXXX_secret_YYYYYYYY",
+  "created_at": "2025-05-26T16:00:00Z"
+}
+```
+**Purpose:** Confirm and complete the payment.
+
+## 5. Get Payment Methods (Optional - for saved cards)
+
+**Endpoint:** `GET /api/payments/methods`  
+**Authentication:** JWT required  
+**Request:** None  
+**Response:**
+```json
+{
+  "count": 1,
+  "page": 1,
+  "page_size": 10,
+  "total_pages": 1,
+  "items": [
+    {
+      "id": 1,
+      "type": "card",
+      "is_default": true,
+      "card_brand": "visa",
+      "card_last4": "4242",
+      "card_exp_month": 12,
+      "card_exp_year": 2026,
+      "stripe_payment_method_id": "pm_XXXXXXXX",
+      "created_at": "2025-05-26T16:00:00Z"
+    }
+  ]
+}
+```
+**Purpose:** List saved payment methods.
+
+## Complete Payment Flow Implementation Guide
+
+Here's the complete flow with code examples:
+
+### 1. Initialize Stripe on the frontend
+
+```javascript
+// Get the publishable key
+const { publishable_key } = await fetch('/api/payments/public-key').then(res => res.json());
+const stripe = Stripe(publishable_key);
+```
+
+### 2. Create a payment intent
+
+For authenticated users:
+```javascript
+const paymentIntent = await fetch('/api/payments/intents', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + jwtToken
+  },
+  body: JSON.stringify({
+    booking_id: bookingId
+  })
+}).then(res => res.json());
+
+const clientSecret = paymentIntent.stripe_client_secret;
+```
+
+For guest users (simpler method):
+```javascript
+const { client_secret } = await fetch('/api/payments/quick-intent', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    booking_id: bookingId
+  })
+}).then(res => res.json());
+```
+
+### 3. Collect card information
+
+```javascript
+// Create a card element
+const elements = stripe.elements();
+const cardElement = elements.create('card');
+cardElement.mount('#card-element');
+```
+
+### 4. Process the payment
+
+```javascript
+// When the user clicks "Pay"
+const result = await stripe.confirmCardPayment(client_secret, {
+  payment_method: {
+    card: cardElement,
+    billing_details: {
+      name: 'User Name',
+      email: 'user@example.com'
+    }
+  }
+});
+
+if (result.error) {
+  // Show error to your customer
+  console.error(result.error.message);
+} else if (result.paymentIntent.status === 'succeeded') {
+  // Extract the required values
+  const paymentIntentId = result.paymentIntent.id;
+  const paymentMethodId = result.paymentIntent.payment_method;
+  
+  // Confirm on the backend
+  if (isAuthenticated) {
+    try {
+      await fetch('/api/payments/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwtToken
+        },
+        body: JSON.stringify({
+          payment_intent_id: paymentIntentId,
+          payment_method_id: paymentMethodId,
+          save_payment_method: saveCard
+        })
+      });
+    } catch (error) {
+      // Even if backend confirmation fails, payment was processed by Stripe
+      console.warn('Backend confirmation failed, but payment was processed by Stripe');
+    }
+  }
+  
+  // Redirect to success page
+  window.location.href = '/booking/success?id=' + bookingId;
+}
+```
+
+## Common Issues and Solutions
+
+### Issue 1: "Missing value for stripe.confirmCardPayment intent secret: value should be a client_secret string"
+
+#### Solution:
+1. Make sure you're extracting just the `client_secret` string from the payment intent response
+2. Pass only this string to `stripe.confirmCardPayment()`, not the entire object
+
+### Example Fix:
+```javascript
+// INCORRECT
+const paymentIntent = await fetch('/api/payments/intents', { /* ... */ }).then(res => res.json());
+await stripe.confirmCardPayment(paymentIntent, { /* ... */ });
+
+// CORRECT
+const paymentIntent = await fetch('/api/payments/intents', { /* ... */ }).then(res => res.json());
+await stripe.confirmCardPayment(paymentIntent.stripe_client_secret, { /* ... */ });
+
+// ALTERNATIVE (for guest users)
+const { client_secret } = await fetch('/api/payments/quick-intent', { /* ... */ }).then(res => res.json());
+await stripe.confirmCardPayment(client_secret, { /* ... */ });
+```
+
+### Issue 2: 422 (Unprocessable Entity) Error when Confirming Payment
+
+#### Solution:
+Ensure you're sending the exact required payload to the `/payments/confirm` endpoint:
+
+```javascript
+// CORRECT structure for confirm payment
+const payload = {
+  payment_intent_id: "pi_XXXXXXXX",       // REQUIRED
+  payment_method_id: "pm_XXXXXXXX",       // OPTIONAL
+  save_payment_method: true               // OPTIONAL
+};
+
+// Send only these fields, nothing more, nothing less
+```
+
+### Issue 3: Double API Path Issues (e.g., `/api/api/payments/confirm`)
+
+#### Solution:
+1. Check your API configuration to ensure the base URL is correctly set
+2. If your environment variable includes `/api` (e.g., `NEXT_PUBLIC_API_URL=http://localhost:8002/api`), then your API service should NOT add `/api` to the beginning of each endpoint path
+
+```javascript
+// CORRECT: If NEXT_PUBLIC_API_URL includes /api
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL, // already includes /api
+  // ...
+});
+
+// Then use endpoints without /api prefix
+api.get('/payments/public-key');
+```
+
+## Rate Limiting and Mock Implementation
+
+To handle API rate limiting gracefully:
+
+1. Detect 429 status codes in responses
+2. Implement a mock mode for development and testing
+3. Use localStorage to remember when rate limits were hit
+4. Provide a reset mechanism for developers
+
+Example mock implementation:
+```javascript
+// If rate limited, fall back to mock data
+if (error.response && error.response.status === 429) {
+  localStorage.setItem('use_mock_implementation', 'true');
+  return {
+    id: 'mock_payment_intent_id',
+    status: 'succeeded'
+  };
+}
+```
+
+## Test Cards
+
+Use these test cards to simulate different payment scenarios:
+
+- **Successful payment**: 4242 4242 4242 4242
+- **Authentication required**: 4000 0025 0000 3155
+- **Payment declined**: 4000 0000 0000 9995
+
+For all test cards:
+- Any future expiration date
+- Any 3-digit CVC
+- Any postal code 

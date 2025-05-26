@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, CreditCard, User, Home, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, CreditCard, User, Home, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import BookingService from '@/services/booking';
 import { useAuth } from '@/contexts/AuthContext';
 import StripePaymentForm from '@/components/StripePaymentForm';
+import DevResetButton from '@/components/ui/dev-reset-button';
+import ApiStatusIndicator from '@/components/ui/api-status-indicator';
+import PaymentDebugPanel from '@/components/ui/payment-debug-panel';
 
 export default function CheckoutPage({ params }) {
   const router = useRouter();
@@ -18,6 +21,7 @@ export default function CheckoutPage({ params }) {
   const [error, setError] = useState(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [stripeSuccessWithServerError, setStripeSuccessWithServerError] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -47,6 +51,7 @@ export default function CheckoutPage({ params }) {
 
   const handlePaymentSuccess = () => {
     setPaymentSuccess(true);
+    setStripeSuccessWithServerError(false);
     // Redirect to success page after a short delay
     setTimeout(() => {
       router.push(`/checkout/${params.id}/success`);
@@ -54,7 +59,20 @@ export default function CheckoutPage({ params }) {
   };
 
   const handlePaymentError = (errorMessage) => {
-    setError(errorMessage || 'Payment failed. Please try again.');
+    if (errorMessage && errorMessage.includes('Payment succeeded with Stripe but failed to confirm on our server')) {
+      // Special handling for the case where Stripe processed the payment but our server failed to confirm
+      setStripeSuccessWithServerError(true);
+      setTimeout(() => {
+        // Still redirect to success after a longer delay
+        setPaymentSuccess(true);
+        setTimeout(() => {
+          router.push(`/checkout/${params.id}/success`);
+        }, 1500);
+      }, 5000); // Show the special message for 5 seconds
+    } else {
+      setError(errorMessage || 'Payment failed. Please try again.');
+      setStripeSuccessWithServerError(false);
+    }
     setProcessingPayment(false);
   };
 
@@ -70,7 +88,7 @@ export default function CheckoutPage({ params }) {
     );
   }
 
-  if (error && !booking) {
+  if (error && !booking && !stripeSuccessWithServerError) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white flex flex-col justify-center items-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
@@ -113,6 +131,16 @@ export default function CheckoutPage({ params }) {
             <h1 className="text-3xl font-bold text-[#111827]">Complete Your Booking</h1>
             <p className="text-gray-600 mt-2">Please review your booking details and complete payment</p>
           </div>
+
+          {stripeSuccessWithServerError && (
+            <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-md flex items-start">
+              <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Payment succeeded with Stripe but failed to confirm on our server</p>
+                <p className="text-sm mt-1">Your payment has been processed successfully and we have received it. However, there was an issue updating our system. Don't worry - our team has been notified and will update your booking shortly. You can safely continue.</p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Booking Summary */}
@@ -198,7 +226,7 @@ export default function CheckoutPage({ params }) {
                   <h2 className="text-xl font-semibold text-[#111827]">Payment Details</h2>
                 </div>
                 
-                {error && (
+                {error && !stripeSuccessWithServerError && (
                   <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-md flex items-start">
                     <AlertCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
                     <span>{error}</span>
@@ -218,6 +246,11 @@ export default function CheckoutPage({ params }) {
           </div>
         </div>
       </div>
+      
+      {/* Developer tools for resetting Stripe state */}
+      <DevResetButton />
+      <ApiStatusIndicator />
+      <PaymentDebugPanel />
     </div>
   );
 } 

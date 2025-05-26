@@ -41,16 +41,56 @@ export const MockElements = ({ children }) => {
 
   const mockStripe = {
     // Mock stripe methods
-    confirmCardPayment: async () => ({
-      paymentIntent: { 
-        id: 'mock_payment_intent_id',
-        client_secret: 'mock_client_secret',
-        status: 'succeeded',
-        payment_method: 'mock_payment_method_id'
-      }
-    }),
-    confirmCardSetup: async () => ({ setupIntent: { status: 'succeeded' } }),
-    createPaymentMethod: async () => ({ paymentMethod: { id: 'mock_payment_method_id' } }),
+    confirmCardPayment: async (clientSecret, options = {}) => {
+      console.log('MOCK: Confirming card payment with client secret:', clientSecret);
+      
+      // Generate a consistent payment_method_id based on the client secret
+      // This helps simulate real behavior where the same card creates the same payment method ID
+      const mockPaymentMethodId = `pm_mock_${clientSecret.substring(0, 8)}`;
+      
+      return {
+        paymentIntent: { 
+          id: 'mock_payment_intent_id',
+          client_secret: clientSecret,
+          stripe_client_secret: clientSecret,
+          status: 'succeeded',
+          payment_method: mockPaymentMethodId,
+          amount: 1000,
+          currency: 'usd'
+        }
+      };
+    },
+    confirmCardSetup: async (clientSecret, options = {}) => {
+      console.log('MOCK: Confirming card setup with client secret:', clientSecret);
+      
+      // Generate a consistent payment_method_id
+      const mockPaymentMethodId = `pm_mock_${clientSecret.substring(0, 8)}`;
+      
+      return { 
+        setupIntent: { 
+          status: 'succeeded',
+          payment_method: mockPaymentMethodId
+        } 
+      };
+    },
+    createPaymentMethod: async (options = {}) => {
+      console.log('MOCK: Creating payment method');
+      
+      // Generate a random ID for the payment method
+      const randomId = Math.random().toString(36).substring(2, 10);
+      return { 
+        paymentMethod: { 
+          id: `pm_mock_${randomId}`,
+          type: 'card',
+          card: {
+            brand: 'visa',
+            last4: '4242',
+            exp_month: 12,
+            exp_year: 2030
+          }
+        } 
+      };
+    },
   };
 
   const value = {

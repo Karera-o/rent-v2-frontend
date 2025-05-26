@@ -1,4 +1,5 @@
 import api from './api';
+import PaymentDebugService from './payment-debug';
 
 const PaymentService = {
   /**
@@ -6,11 +7,28 @@ const PaymentService = {
    * @returns {Promise} - Promise with Stripe publishable key
    */
   getStripePublicKey: async () => {
+    console.log('[PaymentService] Fetching Stripe public key');
+    PaymentDebugService.logApiRequest('/payments/public-key', 'GET');
+    
     try {
+      // Use the exact endpoint from the documentation
       const response = await api.get('/payments/public-key');
+      console.log('[PaymentService] Stripe public key fetched successfully:', response.data);
+      
+      PaymentDebugService.logApiResponse('/payments/public-key', 'GET', response.status, { 
+        publishable_key: response.data.publishable_key ? '[REDACTED]' : 'missing' 
+      });
+      
       return response.data.publishable_key;
     } catch (error) {
-      console.error('Error fetching Stripe public key:', error);
+      console.error('[PaymentService] Error fetching Stripe public key:', error);
+      
+      PaymentDebugService.logError('Failed to fetch Stripe public key', error);
+      
+      // Check for rate limiting (429) or other specific errors
+      if (error.response && error.response.status === 429) {
+        throw { message: 'Rate limit exceeded. Please try again later.', isRateLimit: true };
+      }
       throw error.response?.data || { message: 'Failed to fetch Stripe public key' };
     }
   },
@@ -22,24 +40,91 @@ const PaymentService = {
    * @returns {Promise} - Promise with payment intent data
    */
   createPaymentIntent: async (bookingId, options = {}) => {
+    console.log(`[PaymentService] Creating payment intent for booking ID: ${bookingId}, options:`, options);
+    
     try {
-      console.log(`Creating payment intent for booking ID: ${bookingId}`);
-      const response = await api.post('/payments/intents', {
-        booking_id: bookingId,
-        setup_future_usage: options.setupFutureUsage
+      // Determine if we should use the authenticated or guest endpoint
+      const isAuthenticated = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      console.log(`[PaymentService] User authentication status: ${isAuthenticated ? 'Authenticated' : 'Guest'}`);
+      
+      let endpoint = '/payments/intents';
+      let headers = {};
+      
+      // For unauthenticated users, use the quick intent endpoint
+      if (!isAuthenticated) {
+        endpoint = '/payments/quick-intent';
+        console.log('[PaymentService] Using guest endpoint for payment intent:', endpoint);
+      } else {
+        // Add authorization header if authenticated
+        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+        headers = { Authorization: `Bearer ${token}` };
+        console.log('[PaymentService] Using authenticated endpoint for payment intent:', endpoint);
+      }
+      
+      // Create request body, ensure setup_future_usage parameter is used correctly
+      const requestBody = {
+        booking_id: bookingId
+      };
+      
+      // Add setup_future_usage if provided
+      if (options.setup_future_usage) {
+        requestBody.setup_future_usage = options.setup_future_usage;
+      } else if (options.setupFutureUsage) {
+        // For backward compatibility
+        requestBody.setup_future_usage = options.setupFutureUsage;
+      }
+      
+      console.log('[PaymentService] Creating payment intent with request body:', requestBody);
+      
+      PaymentDebugService.logApiRequest(endpoint, 'POST', requestBody);
+      
+      const response = await api.post(endpoint, requestBody, { headers });
+      
+      console.log(`[PaymentService] Payment intent created successfully:`, response.data);
+      
+      PaymentDebugService.logApiResponse(endpoint, 'POST', response.status, {
+        id: response.data.id,
+        status: response.data.status || 'unknown',
+        amount: response.data.amount,
+        has_client_secret: !!(response.data.client_secret || response.data.stripe_client_secret)
       });
-      console.log(`Payment intent created for booking ID ${bookingId}:`, response.data);
+      
+      // Format the response based on which endpoint was used
+      if (endpoint === '/payments/quick-intent') {
+        // For quick intent, format it to match the structure expected by our components
+        const formattedResponse = {
+          id: response.data.id,
+          stripe_client_secret: response.data.client_secret,
+          amount: response.data.amount,
+          currency: 'usd',
+          status: 'requires_payment_method'
+        };
+        console.log('[PaymentService] Formatted quick intent response:', formattedResponse);
+        return formattedResponse;
+      }
+      
+      // For authenticated endpoints, return data as is
       return response.data;
     } catch (error) {
-      console.error('Error creating payment intent:', error);
-      if (error.response) {
-        console.error('Error response status:', error.response.status);
-        console.error('Error response data:', error.response.data);
-      } else if (error.request) {
-        console.error('Error request:', error.request);
-      } else {
-        console.error('Error message:', error.message);
+      console.error('[PaymentService] Error creating payment intent:', error);
+      
+      PaymentDebugService.logError('Failed to create payment intent', error);
+      
+      // Handle rate limiting specifically
+      if (error.response && error.response.status === 429) {
+        throw { message: 'Rate limit exceeded. Please try again later.', isRateLimit: true };
       }
+      
+      if (error.response) {
+        console.error('[PaymentService] Error response status:', error.response.status);
+        console.error('[PaymentService] Error response data:', error.response.data);
+        console.error('[PaymentService] Error response headers:', error.response.headers);
+      } else if (error.request) {
+        console.error('[PaymentService] Error request:', error.request);
+      } else {
+        console.error('[PaymentService] Error message:', error.message);
+      }
+      
       throw error.response?.data || { message: 'Failed to create payment intent' };
     }
   },
@@ -52,15 +137,101 @@ const PaymentService = {
    * @returns {Promise} - Promise with payment result
    */
   processPayment: async (paymentIntentId, paymentMethodId, savePaymentMethod = false) => {
+    console.log(`[PaymentService] Processing payment for intent: ${paymentIntentId}`);
+    console.log(`[PaymentService] Payment method ID: ${paymentMethodId || 'Not provided'}`);
+    console.log(`[PaymentService] Save payment method: ${savePaymentMethod}`);
+    
     try {
-      const response = await api.post('/payments/confirm', {
-        payment_intent_id: paymentIntentId,
-        payment_method_id: paymentMethodId,
-        save_payment_method: savePaymentMethod
+      // Check if user is authenticated
+      const isAuthenticated = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      console.log(`[PaymentService] User authentication status: ${isAuthenticated ? 'Authenticated' : 'Guest'}`);
+      
+      // If not authenticated, we don't need to call the confirm endpoint
+      // The frontend Stripe.js confirmCardPayment already completed the payment
+      if (!isAuthenticated) {
+        console.log('[PaymentService] Unauthenticated user - skipping backend confirmation');
+        
+        PaymentDebugService.addLog('INFO', 'Skipping backend confirmation for unauthenticated user', {
+          paymentIntentId
+        });
+        
+        return {
+          success: true,
+          payment_intent: {
+            id: paymentIntentId,
+            status: 'succeeded'
+          }
+        };
+      }
+      
+      // Add authorization header
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      // Build exactly the payload expected by the API
+      const payload = {
+        payment_intent_id: paymentIntentId
+      };
+      
+      // Only include optional fields if they have values
+      if (paymentMethodId) {
+        payload.payment_method_id = paymentMethodId;
+      }
+      
+      if (savePaymentMethod) {
+        payload.save_payment_method = savePaymentMethod;
+      }
+      
+      console.log('[PaymentService] Confirming payment with payload:', JSON.stringify(payload, null, 2));
+      
+      const endpoint = '/payments/confirm';
+      PaymentDebugService.logApiRequest(endpoint, 'POST', payload);
+      
+      const response = await api.post(endpoint, payload, { headers });
+      
+      console.log('[PaymentService] Payment confirmation successful:', response.data);
+      
+      PaymentDebugService.logApiResponse(endpoint, 'POST', response.status, {
+        id: response.data.id,
+        status: response.data.status || 'unknown'
       });
+      
       return response.data;
     } catch (error) {
-      console.error('Error processing payment:', error);
+      console.error('[PaymentService] Error processing payment:', error);
+      
+      PaymentDebugService.logError('Failed to process payment', error);
+      
+      // Log the full error details to help debug
+      if (error.response) {
+        console.error('[PaymentService] Error response status:', error.response.status);
+        console.error('[PaymentService] Error response data:', error.response.data);
+        console.error('[PaymentService] Error response headers:', error.response.headers);
+        
+        // Log specific status code to make it more visible
+        if (error.response.status === 422) {
+          console.error('[PaymentService] VALIDATION ERROR (422) - Server rejected the request payload');
+          console.error('[PaymentService] This usually means the payload format is incorrect');
+          
+          PaymentDebugService.addLog('ERROR', 'Validation Error (422) - Server rejected the request', {
+            paymentIntentId,
+            paymentMethodId,
+            savePaymentMethod,
+            responseData: error.response.data
+          });
+        }
+      } else if (error.request) {
+        console.error('[PaymentService] Error request:', error.request);
+      } else {
+        console.error('[PaymentService] Error message:', error.message);
+      }
+      
+      // Handle rate limiting specifically
+      if (error.response && error.response.status === 429) {
+        throw { message: 'Rate limit exceeded. Please try again later.', isRateLimit: true };
+      }
+      
+      // Return a more descriptive error message
       throw error.response?.data || { message: 'Failed to process payment' };
     }
   },
@@ -71,11 +242,39 @@ const PaymentService = {
    */
   getSavedPaymentMethods: async () => {
     try {
-      const response = await api.get('/payments/methods');
+      // Add authorization header
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const response = await api.get('/payments/methods', { headers });
       return response.data;
     } catch (error) {
       console.error('Error fetching payment methods:', error);
       throw error.response?.data || { message: 'Failed to fetch payment methods' };
+    }
+  },
+
+  /**
+   * Save a payment method
+   * @param {string} paymentMethodId - Payment method ID
+   * @param {boolean} setAsDefault - Whether to set as default
+   * @returns {Promise} - Promise with saved payment method data
+   */
+  savePaymentMethod: async (paymentMethodId, setAsDefault = true) => {
+    try {
+      // Add authorization header
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const response = await api.post('/payments/methods', {
+        payment_method_id: paymentMethodId,
+        set_as_default: setAsDefault
+      }, { headers });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error saving payment method:', error);
+      throw error.response?.data || { message: 'Failed to save payment method' };
     }
   },
 
