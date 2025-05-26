@@ -14,61 +14,63 @@ const PropertyCard = ({ property }) => {
   const location = `${property.city}, ${property.state}`;
 
   return (
-    <div className="group relative bg-white overflow-hidden transition-all duration-300 hover:translate-y-[-4px]">
-      {/* Elegant border that appears on hover */}
-      <div className="absolute inset-0 border-2 border-[#111827] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+    <Link href={`/properties/${property.id}`} className="block group">
+      <div className="relative bg-white overflow-hidden transition-all duration-300 hover:translate-y-[-4px]">
+        {/* Elegant border that appears on hover */}
+        <div className="absolute inset-0 border-2 border-[#111827] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
 
-      {/* Image container with subtle hover effect */}
-      <div className="relative h-64 w-full overflow-hidden">
-        <PropertyImage
-          src={property.primary_image}
-          alt={property.title}
-          fill
-          style={{ objectFit: 'cover' }}
-          className="transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+        {/* Image container with subtle hover effect */}
+        <div className="relative h-64 w-full overflow-hidden">
+          <PropertyImage
+            src={property.primary_image}
+            alt={property.title}
+            fill
+            style={{ objectFit: 'cover' }}
+            className="transition-transform duration-700 ease-out group-hover:scale-105"
+          />
 
-        {/* Elegant gradient overlay that's always visible but intensifies on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent opacity-30 group-hover:opacity-40 transition-opacity duration-300" />
+          {/* Elegant gradient overlay that's always visible but intensifies on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent opacity-30 group-hover:opacity-40 transition-opacity duration-300" />
 
-        {/* Price tag positioned at top right */}
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 shadow-md z-10">
-          <span className="text-[#111827] font-medium">${property.price_per_night}</span>
-          <span className="text-gray-500 text-xs">/night</span>
+          {/* Price tag positioned at top right */}
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 shadow-md z-10">
+            <span className="text-[#111827] font-medium">${property.price_per_night}</span>
+            <span className="text-gray-500 text-xs">/night</span>
+          </div>
+
+          {/* Property features as minimal badges at bottom of image */}
+          <div className="absolute bottom-4 left-4 right-4 flex space-x-3 z-10">
+            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
+              <BedDouble className="h-3 w-3 mr-1 text-[#111827]" />
+              <span>{property.bedrooms}</span>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
+              <Bath className="h-3 w-3 mr-1 text-[#111827]" />
+              <span>{property.bathrooms}</span>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
+              <Square className="h-3 w-3 mr-1 text-[#111827]" />
+              <span>{property.square_feet} ft²</span>
+            </div>
+          </div>
         </div>
 
-        {/* Property features as minimal badges at bottom of image */}
-        <div className="absolute bottom-4 left-4 right-4 flex space-x-3 z-10">
-          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
-            <BedDouble className="h-3 w-3 mr-1 text-[#111827]" />
-            <span>{property.bedrooms}</span>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
-            <Bath className="h-3 w-3 mr-1 text-[#111827]" />
-            <span>{property.bathrooms}</span>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center text-xs">
-            <Square className="h-3 w-3 mr-1 text-[#111827]" />
-            <span>{property.square_feet} ft²</span>
+        {/* Content section with minimal styling */}
+        <div className="p-5 border-b border-l border-r border-gray-100">
+          <h3 className="text-base font-medium text-[#111827] mb-1.5 truncate">{property.title}</h3>
+          <p className="text-sm text-gray-500 flex items-center mb-4">
+            <MapPin className="h-3.5 w-3.5 mr-1.5 text-gray-400 flex-shrink-0" />
+            <span className="truncate">{location}</span>
+          </p>
+
+          {/* View details link with animated arrow */}
+          <div className="inline-flex items-center text-sm text-[#111827] font-medium group/link">
+            <span>View details</span>
+            <span className="ml-1.5 transition-transform duration-300 group-hover/link:translate-x-1">→</span>
           </div>
         </div>
       </div>
-
-      {/* Content section with minimal styling */}
-      <div className="p-5 border-b border-l border-r border-gray-100">
-        <h3 className="text-base font-medium text-[#111827] mb-1.5 truncate">{property.title}</h3>
-        <p className="text-sm text-gray-500 flex items-center mb-4">
-          <MapPin className="h-3.5 w-3.5 mr-1.5 text-gray-400 flex-shrink-0" />
-          <span className="truncate">{location}</span>
-        </p>
-
-        {/* View details link with animated arrow */}
-        <Link href={`/properties/${property.id}`} className="inline-flex items-center text-sm text-[#111827] font-medium group/link">
-          <span>View details</span>
-          <span className="ml-1.5 transition-transform duration-300 group-hover/link:translate-x-1">→</span>
-        </Link>
-      </div>
-    </div>
+    </Link>
   );
 };
 
