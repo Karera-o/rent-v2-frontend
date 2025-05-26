@@ -119,39 +119,82 @@ export const StripeProvider = ({ children }) => {
   // Create a payment intent for a booking
   const createPaymentIntent = async (bookingId, options = {}) => {
     try {
-      // Check if we have a cached payment intent for this booking ID
+      console.log(`[StripeContext] createPaymentIntent called for booking ID: ${bookingId}`);
+      
+      // First check the cache by booking ID (this is the most reliable key)
+      const bookingCacheKey = `payment_intent_booking_${bookingId}`;
       const cachedIntentKey = `payment_intent_${bookingId}`;
+      
       if (typeof window !== 'undefined') {
+        // Check booking-specific cache first (most reliable)
+        const bookingCachedIntent = localStorage.getItem(bookingCacheKey);
+        if (bookingCachedIntent) {
+          try {
+            const parsedIntent = JSON.parse(bookingCachedIntent);
+            console.log('[StripeContext] Using cached payment intent from booking cache:', parsedIntent.id);
+            return parsedIntent;
+          } catch (e) {
+            console.error('[StripeContext] Error parsing cached intent from booking cache:', e);
+            localStorage.removeItem(bookingCacheKey);
+          }
+        }
+        
+        // Fall back to the old cache key if needed
         const cachedIntent = localStorage.getItem(cachedIntentKey);
         if (cachedIntent) {
           try {
             const parsedIntent = JSON.parse(cachedIntent);
-            console.log('[StripeContext] Using cached payment intent for booking:', bookingId);
+            console.log('[StripeContext] Using cached payment intent from regular cache:', parsedIntent.id);
+            
+            // Copy to the booking-specific cache for future use
+            localStorage.setItem(bookingCacheKey, cachedIntent);
+            
+            // Ensure the cached intent has a booking_id for future reference
+            if (!parsedIntent.booking_id) {
+              parsedIntent.booking_id = bookingId;
+              localStorage.setItem(cachedIntentKey, JSON.stringify(parsedIntent));
+              localStorage.setItem(bookingCacheKey, JSON.stringify(parsedIntent));
+            }
+            
             return parsedIntent;
           } catch (e) {
-            console.error('[StripeContext] Error parsing cached intent:', e);
+            console.error('[StripeContext] Error parsing cached intent from regular cache:', e);
             localStorage.removeItem(cachedIntentKey);
           }
         }
       }
       
+      // Check if we need to use mock implementation
       if (useMockImplementation) {
+        console.log('[StripeContext] Using mock implementation for payment intent');
+        
+        // Generate a unique ID for mock intents to avoid duplicates
+        const uniqueId = `mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        
         // Return mock payment intent data
         const mockIntent = {
-          id: `mock_payment_intent_${bookingId}`,
+          id: uniqueId,
           stripe_client_secret: 'mock_client_secret',
           amount: 1000,
           currency: 'usd',
-          status: 'requires_payment_method'
+          status: 'requires_payment_method',
+          booking_id: bookingId,
+          created_at: new Date().toISOString(),
+          is_mock: true
         };
         
-        // Cache the mock intent
+        // Cache the mock intent using both keys
         if (typeof window !== 'undefined') {
+          localStorage.setItem(bookingCacheKey, JSON.stringify(mockIntent));
           localStorage.setItem(cachedIntentKey, JSON.stringify(mockIntent));
+          // Also cache by the generated ID
+          localStorage.setItem(`payment_intent_${uniqueId}`, JSON.stringify(mockIntent));
         }
         
         return mockIntent;
       }
+      
+      console.log('[StripeContext] No cached intent found, creating new payment intent');
       
       // Ensure we're passing the correct parameter name for saving payment methods
       const paymentOptions = {
@@ -164,7 +207,13 @@ export const StripeProvider = ({ children }) => {
         delete paymentOptions.setupFutureUsage;
       }
       
+      // Add a timestamp to help debug duplicate requests
+      const timestamp = new Date().toISOString();
+      console.log(`[StripeContext] Making API call to create payment intent at ${timestamp}`);
+      
       const paymentIntentData = await PaymentService.createPaymentIntent(bookingId, paymentOptions);
+      
+      console.log('[StripeContext] Payment intent created successfully:', paymentIntentData.id);
       
       // Ensure we have a properly formatted response with client_secret
       if (!paymentIntentData.stripe_client_secret && paymentIntentData.client_secret) {
@@ -172,14 +221,33 @@ export const StripeProvider = ({ children }) => {
         paymentIntentData.stripe_client_secret = paymentIntentData.client_secret;
       }
       
-      // Cache the payment intent
+      // Make sure the booking_id is stored for future reference
+      paymentIntentData.booking_id = bookingId;
+      paymentIntentData.created_at = new Date().toISOString();
+      
+      // Cache the payment intent using all relevant keys
       if (typeof window !== 'undefined') {
+        // Cache by booking ID (most important)
+        localStorage.setItem(bookingCacheKey, JSON.stringify(paymentIntentData));
+        
+        // Cache by the old key for backward compatibility
         localStorage.setItem(cachedIntentKey, JSON.stringify(paymentIntentData));
+        
+        // Also cache by intent ID for easier lookup during confirmation
+        if (paymentIntentData.id) {
+          localStorage.setItem(`payment_intent_${paymentIntentData.id}`, JSON.stringify(paymentIntentData));
+        }
+        
+        console.log('[StripeContext] Cached payment intent with keys:', {
+          bookingKey: bookingCacheKey,
+          regularKey: cachedIntentKey,
+          intentIdKey: `payment_intent_${paymentIntentData.id}`
+        });
       }
       
       return paymentIntentData;
     } catch (err) {
-      console.error('Error creating payment intent:', err);
+      console.error('[StripeContext] Error creating payment intent:', err);
       
       // Check if this is a rate limit error (specifically flagged by our service)
       if (err.isRateLimit || 
@@ -189,7 +257,7 @@ export const StripeProvider = ({ children }) => {
           )) ||
           (err.response && err.response.status === 429)) {
         
-        console.warn('Rate limit detected during payment intent creation, using mock mode for future requests');
+        console.warn('[StripeContext] Rate limit detected during payment intent creation, using mock mode for future requests');
         
         if (typeof window !== 'undefined') {
           localStorage.setItem('stripe_rate_limited', 'true');
@@ -197,18 +265,25 @@ export const StripeProvider = ({ children }) => {
         }
         
         // Return mock data since we hit a rate limit
+        const uniqueId = `mock_ratelimited_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const mockIntent = {
-          id: `mock_payment_intent_${bookingId}`,
+          id: uniqueId,
           stripe_client_secret: 'mock_client_secret',
           amount: 1000,
           currency: 'usd',
-          status: 'requires_payment_method'
+          status: 'requires_payment_method',
+          booking_id: bookingId,
+          created_at: new Date().toISOString(),
+          is_mock: true,
+          reason: 'rate_limited'
         };
         
         // Cache the mock intent
         if (typeof window !== 'undefined') {
-          const cachedIntentKey = `payment_intent_${bookingId}`;
-          localStorage.setItem(cachedIntentKey, JSON.stringify(mockIntent));
+          const bookingCacheKey = `payment_intent_booking_${bookingId}`;
+          localStorage.setItem(bookingCacheKey, JSON.stringify(mockIntent));
+          localStorage.setItem(`payment_intent_${bookingId}`, JSON.stringify(mockIntent));
+          localStorage.setItem(`payment_intent_${uniqueId}`, JSON.stringify(mockIntent));
         }
         
         return mockIntent;
@@ -219,7 +294,7 @@ export const StripeProvider = ({ children }) => {
   };
 
   // Process a payment
-  const processPayment = async (paymentIntentId, paymentMethodId, savePaymentMethod = false) => {
+  const processPayment = async (paymentIntentId, paymentMethodId, savePaymentMethod = false, bookingId = null) => {
     try {
       if (useMockImplementation) {
         // Return mock payment result
@@ -231,7 +306,7 @@ export const StripeProvider = ({ children }) => {
           }
         };
       }
-      return await PaymentService.processPayment(paymentIntentId, paymentMethodId, savePaymentMethod);
+      return await PaymentService.processPayment(paymentIntentId, paymentMethodId, savePaymentMethod, bookingId);
     } catch (err) {
       console.error('Error processing payment:', err);
       

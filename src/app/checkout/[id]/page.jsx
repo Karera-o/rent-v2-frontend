@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, CreditCard, User, Home, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
@@ -22,34 +22,15 @@ export default function CheckoutPage({ params }) {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [stripeSuccessWithServerError, setStripeSuccessWithServerError] = useState(false);
-
-  useEffect(() => {
-    // Check if user is authenticated
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
-    const fetchBooking = async () => {
-      try {
-        setLoading(true);
-        const bookingData = await BookingService.getBookingById(params.id);
-        setBooking(bookingData);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching booking:', err);
-        setError('Failed to load booking details.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated) {
-      fetchBooking();
-    }
-  }, [params.id, isAuthenticated, authLoading, router]);
-
+  // Use a ref to ensure the payment form only mounts once
+  const paymentFormMounted = React.useRef(false);
+  
+  // Generate a unique render ID to help with debugging
+  const pageRenderID = React.useRef(`checkout-${Math.random().toString(36).substring(2, 8)}`);
+  
+  // Define handler functions before they're used in the memo
   const handlePaymentSuccess = () => {
+    console.log(`[CheckoutPage][${pageRenderID.current}] Payment successful for booking ID: ${params.id}`);
     setPaymentSuccess(true);
     setStripeSuccessWithServerError(false);
     // Redirect to success page after a short delay
@@ -59,6 +40,8 @@ export default function CheckoutPage({ params }) {
   };
 
   const handlePaymentError = (errorMessage) => {
+    console.log(`[CheckoutPage][${pageRenderID.current}] Payment error: ${errorMessage}`);
+    
     if (errorMessage && errorMessage.includes('Payment succeeded with Stripe but failed to confirm on our server')) {
       // Special handling for the case where Stripe processed the payment but our server failed to confirm
       setStripeSuccessWithServerError(true);
@@ -77,8 +60,65 @@ export default function CheckoutPage({ params }) {
   };
 
   const handlePaymentProcessing = (isProcessing) => {
+    console.log(`[CheckoutPage][${pageRenderID.current}] Payment processing state changed: ${isProcessing}`);
     setProcessingPayment(isProcessing);
   };
+  
+  useEffect(() => {
+    console.log(`[CheckoutPage][${pageRenderID.current}] Mounting checkout page for booking ID: ${params.id}`);
+    
+    // Check if user is authenticated
+    if (!authLoading && !isAuthenticated) {
+      console.log(`[CheckoutPage][${pageRenderID.current}] User not authenticated, redirecting to login`);
+      router.push('/login');
+      return;
+    }
+
+    const fetchBooking = async () => {
+      try {
+        console.log(`[CheckoutPage][${pageRenderID.current}] Fetching booking details for ID: ${params.id}`);
+        setLoading(true);
+        const bookingData = await BookingService.getBookingById(params.id);
+        console.log(`[CheckoutPage][${pageRenderID.current}] Booking fetched successfully:`, bookingData.id);
+        setBooking(bookingData);
+        setError(null);
+      } catch (err) {
+        console.error(`[CheckoutPage][${pageRenderID.current}] Error fetching booking:`, err);
+        setError('Failed to load booking details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchBooking();
+    }
+    
+    // Cleanup function
+    return () => {
+      console.log(`[CheckoutPage][${pageRenderID.current}] Unmounting checkout page for booking ID: ${params.id}`);
+    };
+  }, [params.id, isAuthenticated, authLoading, router]);
+
+  // Memoize the payment form component to prevent unnecessary re-renders
+  const paymentForm = React.useMemo(() => {
+    if (!booking || paymentSuccess) return null;
+    
+    console.log(`[CheckoutPage][${pageRenderID.current}] Creating payment form component for booking ID: ${booking.id}`);
+    paymentFormMounted.current = true;
+    
+    return (
+      <StripePaymentForm 
+        key={`payment-form-${booking.id}`}
+        bookingId={booking.id}
+        amount={booking.total_price}
+        onSuccess={handlePaymentSuccess}
+        onError={handlePaymentError}
+        onProcessingChange={handlePaymentProcessing}
+        disabled={processingPayment}
+      />
+    );
+  }, [booking, paymentSuccess, processingPayment]);
 
   if (loading || authLoading) {
     return (
@@ -233,14 +273,7 @@ export default function CheckoutPage({ params }) {
                   </div>
                 )}
                 
-                <StripePaymentForm 
-                  bookingId={booking.id}
-                  amount={booking.total_price}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                  onProcessingChange={handlePaymentProcessing}
-                  disabled={processingPayment}
-                />
+                {paymentForm}
               </div>
             </div>
           </div>

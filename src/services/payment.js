@@ -134,12 +134,14 @@ const PaymentService = {
    * @param {string} paymentIntentId - Stripe payment intent ID
    * @param {string} paymentMethodId - Stripe payment method ID
    * @param {boolean} savePaymentMethod - Whether to save the payment method
+   * @param {number} bookingId - The booking ID associated with this payment
    * @returns {Promise} - Promise with payment result
    */
-  processPayment: async (paymentIntentId, paymentMethodId, savePaymentMethod = false) => {
+  processPayment: async (paymentIntentId, paymentMethodId, savePaymentMethod = false, bookingId = null) => {
     console.log(`[PaymentService] Processing payment for intent: ${paymentIntentId}`);
     console.log(`[PaymentService] Payment method ID: ${paymentMethodId || 'Not provided'}`);
     console.log(`[PaymentService] Save payment method: ${savePaymentMethod}`);
+    console.log(`[PaymentService] Booking ID: ${bookingId || 'Not provided directly'}`);
     
     try {
       // Check if user is authenticated
@@ -168,9 +170,33 @@ const PaymentService = {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const headers = { Authorization: `Bearer ${token}` };
       
+      // If no booking ID was provided, try to find it in cached data
+      if (!bookingId) {
+        console.log('[PaymentService] No booking ID provided, attempting to find in cache');
+        
+        // Extract booking ID from cached payment intent if available
+        const cachedIntentKey = `payment_intent_${paymentIntentId}`;
+        
+        if (typeof window !== 'undefined') {
+          try {
+            const cachedIntent = localStorage.getItem(cachedIntentKey);
+            if (cachedIntent) {
+              const parsedIntent = JSON.parse(cachedIntent);
+              bookingId = parsedIntent.booking_id || parsedIntent.booking?.id;
+              console.log(`[PaymentService] Found booking ID from cached intent: ${bookingId}`);
+            }
+          } catch (e) {
+            console.error('[PaymentService] Error parsing cached intent for booking ID:', e);
+          }
+        }
+      }
+      
       // Build exactly the payload expected by the API
       const payload = {
-        payment_intent_id: paymentIntentId
+        payment_intent_id: paymentIntentId,
+        data: {
+          booking_id: bookingId
+        }
       };
       
       // Only include optional fields if they have values

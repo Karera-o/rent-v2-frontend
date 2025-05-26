@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { useStripe as useStripeContext } from '@/contexts/StripeContext';
@@ -86,25 +86,59 @@ export default function StripePaymentForm({
   const [error, setError] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
   const [showDebug, setShowDebug] = useState(false);
+  
+  // Define effectRan ref at the component level
+  const effectRan = useRef(false);
 
   // Create payment intent when component mounts
   useEffect(() => {
     const getPaymentIntent = async () => {
-      console.log('[StripePaymentForm] Creating payment intent for booking:', bookingId);
+      // Generate a unique request ID to track this specific request in logs
+      const requestId = Math.random().toString(36).substring(2, 10);
+      console.log(`[StripePaymentForm][${requestId}] Creating payment intent for booking:`, bookingId);
+      
       try {
         setProcessing(true);
         onProcessingChange?.(true);
+        
+        // Check if we have an existing payment intent in localStorage first
+        const cachedIntentKey = `payment_intent_booking_${bookingId}`;
+        const existingIntent = localStorage.getItem(cachedIntentKey);
+        
+        if (existingIntent) {
+          try {
+            const parsedIntent = JSON.parse(existingIntent);
+            console.log(`[StripePaymentForm][${requestId}] Using cached payment intent from localStorage:`, parsedIntent.id);
+            setPaymentIntent(parsedIntent);
+            setError(null);
+            setDebugInfo(null);
+            return;  // Exit early - no need to create a new intent
+          } catch (e) {
+            console.error(`[StripePaymentForm][${requestId}] Error parsing cached intent:`, e);
+            localStorage.removeItem(cachedIntentKey);
+          }
+        }
+        
+        // If execution reaches here, we need to create a new payment intent
+        console.log(`[StripePaymentForm][${requestId}] No valid cached intent, creating new one`);
         
         const paymentIntentData = await createPaymentIntent(bookingId, {
           setupFutureUsage: saveCard ? 'off_session' : undefined
         });
         
-        console.log('[StripePaymentForm] Payment intent created successfully:', paymentIntentData);
+        console.log(`[StripePaymentForm][${requestId}] Payment intent created successfully:`, paymentIntentData);
+        
+        // Cache the intent in localStorage directly from this component
+        if (typeof window !== 'undefined' && paymentIntentData && paymentIntentData.id) {
+          localStorage.setItem(cachedIntentKey, JSON.stringify(paymentIntentData));
+          console.log(`[StripePaymentForm][${requestId}] Cached payment intent in localStorage:`, paymentIntentData.id);
+        }
+        
         setPaymentIntent(paymentIntentData);
         setError(null);
         setDebugInfo(null);
       } catch (err) {
-        console.error('[StripePaymentForm] Error creating payment intent:', err);
+        console.error(`[StripePaymentForm][${requestId}] Error creating payment intent:`, err);
         setError(err.message || 'Failed to initialize payment. Please try again.');
         
         // Collect debug information
@@ -118,11 +152,26 @@ export default function StripePaymentForm({
       }
     };
 
-    // Only create the payment intent once when the component mounts
-    // and only if we don't already have one
-    if (bookingId && !paymentIntent) {
-      getPaymentIntent();
+    // Prevent duplicate calls on component re-renders
+    // In development, React 18 StrictMode runs effects twice
+    if (effectRan.current === false) {
+      // Only create the payment intent once when the component mounts
+      // and only if we don't already have one
+      if (bookingId && !paymentIntent) {
+        console.log('[StripePaymentForm] Initial payment intent creation for booking:', bookingId);
+        getPaymentIntent();
+      }
+      
+      // Mark that this effect has run
+      effectRan.current = true;
+    } else {
+      console.log('[StripePaymentForm] Skipping duplicate payment intent creation (effect already ran)');
     }
+    
+    // Cleanup function
+    return () => {
+      console.log('[StripePaymentForm] Component unmounting for booking:', bookingId);
+    };
   }, [bookingId, createPaymentIntent, onError, onProcessingChange, saveCard, paymentIntent]);
 
   const handleCardChange = (event) => {
@@ -223,6 +272,7 @@ export default function StripePaymentForm({
           console.log(`[StripePaymentForm] Processing backend confirmation with:`, {
             paymentIntentId,
             paymentMethodId,
+            bookingId,
             saveCard
           });
           
@@ -230,7 +280,8 @@ export default function StripePaymentForm({
           const confirmResult = await processPayment(
             paymentIntentId,
             paymentMethodId,
-            saveCard
+            saveCard,
+            bookingId
           );
           
           console.log('[StripePaymentForm] Backend confirmation successful:', confirmResult);
