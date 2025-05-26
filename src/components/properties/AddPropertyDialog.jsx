@@ -12,6 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
+import { useLoadScript } from "@react-google-maps/api";
 
 export default function AddPropertyDialog({ children, onPropertyAdded }) {
   const [open, setOpen] = useState(false);
@@ -34,6 +36,8 @@ export default function AddPropertyDialog({ children, onPropertyAdded }) {
     description: "",
     amenities: [],
     images: [],
+    latitude: 0,
+    longitude: 0,
   });
 
   const propertyTypes = [
@@ -58,6 +62,24 @@ export default function AddPropertyDialog({ children, onPropertyAdded }) {
     "Gym",
     "Washing Machine",
   ];
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries: ["places"],
+  });
+
+  const {
+    ready,
+    value: locationInput,
+    suggestions: { status, data },
+    setValue: setLocationInput,
+    clearSuggestions,
+  } = usePlacesAutocomplete({
+    debounce: 300,
+    requestOptions: {
+      componentRestrictions: { country: 'rw' },
+    },
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -136,6 +158,38 @@ export default function AddPropertyDialog({ children, onPropertyAdded }) {
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
+  };
+
+  const handleSelectLocation = async (address) => {
+    setLocationInput(address, false);
+    clearSuggestions();
+    setFormData((prev) => ({ ...prev, address }));
+    try {
+      const results = await getGeocode({ address });
+      const { lat, lng } = await getLatLng(results[0]);
+      // Extract city, state, country, zip from address components
+      const addressComponents = results[0].address_components;
+      const getComponent = (type) => {
+        const comp = addressComponents.find((c) => c.types.includes(type));
+        return comp ? comp.long_name : "";
+      };
+      setFormData((prev) => ({
+        ...prev,
+        address,
+        city: getComponent("locality") || getComponent("administrative_area_level_2"),
+        state: getComponent("administrative_area_level_1"),
+        country: getComponent("country"),
+        zip_code: getComponent("postal_code"),
+        latitude: lat,
+        longitude: lng,
+      }));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to get location details. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -251,6 +305,8 @@ export default function AddPropertyDialog({ children, onPropertyAdded }) {
         description: "",
         amenities: [],
         images: [],
+        latitude: 0,
+        longitude: 0,
       });
 
       // Call the callback function if provided
@@ -338,72 +394,33 @@ export default function AddPropertyDialog({ children, onPropertyAdded }) {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700">
-                Street Address
+                Property Location
               </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                City
-              </label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                State/Province
-              </label>
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Country
-              </label>
-              <input
-                type="text"
-                name="country"
-                value={formData.country}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                ZIP/Postal Code
-              </label>
-              <input
-                type="text"
-                name="zip_code"
-                value={formData.zip_code}
-                onChange={handleInputChange}
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
+              {isLoaded && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={locationInput}
+                    onChange={(e) => setLocationInput(e.target.value)}
+                    disabled={!ready}
+                    placeholder="Search for address, city, or place..."
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  {status === "OK" && data.length > 0 && (
+                    <ul className="absolute z-10 bg-white border border-gray-200 w-full mt-1 rounded shadow-lg max-h-60 overflow-y-auto">
+                      {data.map(({ place_id, description }) => (
+                        <li
+                          key={place_id}
+                          className="px-4 py-2 cursor-pointer hover:bg-primary/10"
+                          onClick={() => handleSelectLocation(description)}
+                        >
+                          {description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>

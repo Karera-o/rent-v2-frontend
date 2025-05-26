@@ -8,29 +8,63 @@ const PropertyService = {
    * @param {number} pageSize - Number of items per page
    * @returns {Promise} - Promise with paginated property data
    */
-  getAllProperties: async (searchParams = {}, page = 1, pageSize = 10) => {
+  getAllProperties: async (searchParams = {}, page, pageSize) => {
     try {
       // Convert searchParams to the format expected by the backend
       const formattedParams = {};
-
-      // Map frontend filter names to backend parameter names
-      if (searchParams.min_price !== undefined) formattedParams.min_price = searchParams.min_price;
-      if (searchParams.max_price !== undefined) formattedParams.max_price = searchParams.max_price;
-      if (searchParams.property_type) formattedParams.property_type = searchParams.property_type;
-      if (searchParams.bedrooms) formattedParams.bedrooms = searchParams.bedrooms;
-      if (searchParams.bathrooms) formattedParams.bathrooms = searchParams.bathrooms;
-      if (searchParams.query) formattedParams.query = searchParams.query;
-      if (searchParams.city) formattedParams.city = searchParams.city;
+      
+      // Handle pagination parameters
+      formattedParams.page = page || searchParams.page || 1;
+      formattedParams.page_size = pageSize || searchParams.page_size || 10;
+      
+      // Handle search query (general search across title, address, city, state)
+      if (searchParams.query) {
+        formattedParams.query = searchParams.query;
+      }
+      
+      // Handle specific city search - ensure proper capitalization
+      if (searchParams.city) {
+        // Capitalize first letter of each word in city name
+        const cityWords = searchParams.city.split(' ');
+        const capitalizedCity = cityWords.map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+        formattedParams.city = capitalizedCity;
+      }
+      
+      // Handle property type filter - ensure proper capitalization
+      if (searchParams.property_type) {
+        // Capitalize first letter of property type
+        formattedParams.property_type = 
+          searchParams.property_type.charAt(0).toUpperCase() + 
+          searchParams.property_type.slice(1).toLowerCase();
+      }
+      
+      // Handle bedrooms filter (3+ bedrooms)
+      if (searchParams.bedrooms) {
+        formattedParams.bedrooms = searchParams.bedrooms;
+      }
+      
+      // Handle price range in format "min-max" (e.g., "200-500")
+      if (searchParams.price_range) {
+        formattedParams.price_range = searchParams.price_range;
+      }
+      
+      // Support for individual min/max price parameters if they exist
+      if (searchParams.min_price !== undefined && !searchParams.price_range) {
+        const minPrice = searchParams.min_price;
+        const maxPrice = searchParams.max_price || 'any';
+        formattedParams.price_range = `${minPrice}-${maxPrice}`;
+      }
 
       console.log('Sending search params to API:', formattedParams);
 
-      const response = await api.get('/properties/', {
-        params: {
-          ...formattedParams,
-          page,
-          page_size: pageSize
-        }
+      // Use the exact endpoint format from the example
+      const baseUrl = '/properties';
+      const response = await api.get(baseUrl, {
+        params: formattedParams
       });
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching properties:', error);

@@ -22,6 +22,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import PropertyService from '@/services/property';
+import { useToast } from '@/components/ui/use-toast';
 
 // Mock location suggestions for Rwanda - in a real app, this would come from an API
 const LOCATION_SUGGESTIONS = [
@@ -37,8 +39,9 @@ const LOCATION_SUGGESTIONS = [
   "Karongi, Rwanda"
 ];
 
-const AdvancedSearchBar = ({ className, variant = "default" }) => {
+const AdvancedSearchBar = ({ className, variant = "default", onSearchResults, onSearchStart }) => {
   const router = useRouter();
+  const { toast } = useToast();
   const [location, setLocation] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -50,6 +53,8 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
     bedrooms: null,
     bathrooms: null
   });
+  const [searchResults, setSearchResults] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const locationInputRef = useRef(null);
   const suggestionsRef = useRef(null);
@@ -112,20 +117,120 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
     }));
   };
 
+  // Fetch properties based on search criteria
+  const fetchProperties = async () => {
+    setLoading(true);
+
+    try {
+      // Format search parameters according to the API documentation
+      const searchParams = {};
+
+      // Handle location/city search
+      if (location) {
+        // Extract city name from location (e.g., "Kigali, Rwanda" -> "Kigali")
+        const city = location.split(',')[0].trim();
+        
+        // Add general query parameter for general search
+        searchParams.query = city;
+        
+        // Add specific city parameter with proper capitalization
+        searchParams.city = city;
+      }
+
+      // Handle property type - use the label (capitalized) instead of value
+      if (filters.propertyType) {
+        const selectedType = propertyTypes.find(type => type.value === filters.propertyType);
+        searchParams.property_type = selectedType ? selectedType.label : filters.propertyType;
+      }
+
+      // Handle bedrooms (will find properties with X+ bedrooms)
+      if (filters.bedrooms) {
+        searchParams.bedrooms = filters.bedrooms;
+      }
+
+      // Handle price range in format "min-max" (e.g., "200-500")
+      if (filters.minPrice > 0 || filters.maxPrice < 5000) {
+        const minPrice = filters.minPrice;
+        // If maxPrice is the max value (5000), use 'any' to indicate no upper limit
+        const maxPrice = filters.maxPrice === 5000 ? 'any' : filters.maxPrice;
+        searchParams.price_range = `${minPrice}-${maxPrice}`;
+      }
+
+      // Handle pagination if needed
+      searchParams.page = 1;
+      searchParams.page_size = 8; // Default to 8 results for the homepage
+
+      console.log('Searching with params:', searchParams);
+
+      // Fetch properties with the search parameters
+      const response = await PropertyService.getAllProperties(searchParams);
+
+      // Update search results
+      setSearchResults(response);
+
+      // If onSearchResults callback is provided, pass the results to parent component
+      if (onSearchResults) {
+        onSearchResults(response);
+      }
+
+      // Show success toast if no results
+      if (response.results.length === 0) {
+        toast({
+          title: "No properties found",
+          description: "Try adjusting your search criteria.",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error('Error searching properties:', error);
+      toast({
+        title: "Search failed",
+        description: "Failed to search properties. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle search submission
   const handleSearch = () => {
-    // Build query parameters
-    const params = new URLSearchParams();
+    // If we're searching directly on the home page
+    if (onSearchResults) {
+      // Notify parent that search is starting
+      if (onSearchStart) {
+        onSearchStart();
+      }
+      fetchProperties();
+    } else {
+      // Build query parameters for navigation
+      const params = new URLSearchParams();
 
-    if (location) params.append('location', location);
-    if (filters.propertyType) params.append('property_type', filters.propertyType);
-    if (filters.bedrooms) params.append('bedrooms', filters.bedrooms);
-    if (filters.bathrooms) params.append('bathrooms', filters.bathrooms);
-    if (filters.minPrice > 0) params.append('min_price', filters.minPrice);
-    if (filters.maxPrice < 5000) params.append('max_price', filters.maxPrice);
+      if (location) {
+        // Extract city name from location (e.g., "Kigali, Rwanda" -> "Kigali")
+        const city = location.split(',')[0].trim();
+        params.append('query', city);
+        params.append('city', city);
+      }
+      
+      // Handle property type - use the label (capitalized) instead of value
+      if (filters.propertyType) {
+        const selectedType = propertyTypes.find(type => type.value === filters.propertyType);
+        params.append('property_type', selectedType ? selectedType.label : filters.propertyType);
+      }
+      
+      if (filters.bedrooms) params.append('bedrooms', filters.bedrooms);
+      
+      if (filters.minPrice > 0 || filters.maxPrice < 5000) {
+        const minPrice = filters.minPrice;
+        // If maxPrice is the max value (5000), use 'any' to indicate no upper limit
+        const maxPrice = filters.maxPrice === 5000 ? 'any' : filters.maxPrice;
+        params.append('price_range', `${minPrice}-${maxPrice}`);
+      }
 
-    // Navigate to properties page with filters
-    router.push(`/properties?${params.toString()}`);
+      // Navigate to properties page with filters
+      router.push(`/properties?${params.toString()}`);
+    }
   };
 
   // Handle filter button click
@@ -240,10 +345,20 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
           <label className="block text-xs uppercase tracking-wider text-transparent mb-2">Search</label>
           <Button
             onClick={handleSearch}
+            disabled={loading}
             className="w-full border border-[#111827] bg-[#111827] hover:bg-transparent hover:text-[#111827] text-white transition-all duration-300"
           >
-            <Search className="h-3.5 w-3.5 mr-2" />
-            <span className="text-sm">Search</span>
+            {loading ? (
+              <>
+                <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                <span className="text-sm">Searching...</span>
+              </>
+            ) : (
+              <>
+                <Search className="h-3.5 w-3.5 mr-2" />
+                <span className="text-sm">Search</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -323,9 +438,17 @@ const AdvancedSearchBar = ({ className, variant = "default" }) => {
           <div className="mt-10 flex justify-end">
             <Button
               onClick={handleSearch}
+              disabled={loading}
               className="border border-[#111827] bg-[#111827] hover:bg-transparent hover:text-[#111827] text-white transition-all duration-300 px-8"
             >
-              <span className="text-sm">Apply Filters</span>
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <span className="text-sm">Searching...</span>
+                </>
+              ) : (
+                <span className="text-sm">Apply Filters</span>
+              )}
             </Button>
           </div>
         </div>

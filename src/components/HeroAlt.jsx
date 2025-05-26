@@ -1,9 +1,11 @@
+"use client";
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button.jsx'
 import AdvancedSearchBar from '@/components/AdvancedSearchBar'
 
-const HeroAlt = () => {
+const HeroAlt = ({ onSearchResults, onSearchStart }) => {
   return (
     <div className="relative">
       {/* Hero Background Image */}
@@ -44,7 +46,13 @@ const HeroAlt = () => {
       {/* Search Bar with elegant styling */}
       <div className="relative z-20 container-responsive -mt-20 md:-mt-24 mb-8">
         <div className="max-w-5xl mx-auto">
-          <AdvancedSearchBar className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-xl" />
+          <AdvancedSearchBar
+            className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-xl"
+            onSearchResults={onSearchResults}
+            onSearchStart={() => {
+              if (onSearchStart) onSearchStart();
+            }}
+          />
         </div>
       </div>
     </div>

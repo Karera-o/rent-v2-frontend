@@ -1,5 +1,8 @@
+"use client";
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react';
 import { Button } from '@/components/ui/button.jsx'
 import { Home as HomeIcon, Building, Castle, Warehouse, Trees, Building2 } from 'lucide-react'
 import HeroAlt from '@/components/HeroAlt.jsx'
@@ -43,9 +46,31 @@ const propertyCategories = [
 ];
 
 export default function Home() {
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Handle search results from AdvancedSearchBar
+  const handleSearchResults = (results) => {
+    setSearchResults(results);
+    setIsSearching(false);
+
+    // Scroll to results section
+    if (results) {
+      setTimeout(() => {
+        const resultsSection = document.getElementById('property-results');
+        if (resultsSection) {
+          resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   return (
     <>
-      <HeroAlt />
+      <HeroAlt
+        onSearchStart={() => setIsSearching(true)}
+        onSearchResults={handleSearchResults}
+      />
 
       {/* Featured Categories Section - Elegant Minimalist Design */}
       <div className="bg-white py-20 mt-16">
@@ -89,9 +114,13 @@ export default function Home() {
       </div>
 
       {/* Property Search Results Section - Refined Design */}
-      <div className="bg-white py-24">
+      <div id="property-results" className="bg-white py-24">
         <div className="container-responsive">
-          <PropertySearchResults limit={8} />
+          <PropertySearchResults
+            limit={8}
+            searchResults={searchResults}
+            isSearching={isSearching}
+          />
         </div>
       </div>
 

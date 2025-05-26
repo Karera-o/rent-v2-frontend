@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8003/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -98,7 +98,7 @@ api.interceptors.response.use(
           refresh: refreshToken,
         }, {
           withCredentials: true,
-          baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api'
+          baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002/api'
         });
 
         console.log('Token refresh response:', response.data);

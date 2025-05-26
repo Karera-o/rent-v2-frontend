@@ -72,14 +72,17 @@ const PropertyCard = ({ property }) => {
   );
 };
 
-const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
+const PropertySearchResults = ({ initialFilters = {}, limit = 6, searchResults = null, isSearching = false }) => {
   const { toast } = useToast();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalProperties, setTotalProperties] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('price_asc');
   const [filters, setFilters] = useState(initialFilters);
+  const [isFiltered, setIsFiltered] = useState(false);
 
   // Fetch properties from the backend
   const fetchProperties = async () => {
@@ -99,11 +102,17 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
         searchParams.ordering = '-created_at';
       }
 
+      // Set pagination parameters
+      searchParams.page = currentPage;
+      searchParams.page_size = limit;
+
       // Fetch properties with pagination
-      const response = await PropertyService.getAllProperties(searchParams, 1, limit);
+      const response = await PropertyService.getAllProperties(searchParams);
 
       setProperties(response.results || []);
-      setTotalProperties(response.total || 0);
+      setTotalProperties(response.count || 0);
+      setTotalPages(response.total_pages || 1);
+      setCurrentPage(response.page || 1);
     } catch (error) {
       console.error('Error fetching properties:', error);
       setError('Failed to load properties. Please try again.');
@@ -117,14 +126,40 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
     }
   };
 
+  // Handle search results from parent component
+  useEffect(() => {
+    if (searchResults) {
+      setProperties(searchResults.results || []);
+      setTotalProperties(searchResults.count || 0);
+      setTotalPages(searchResults.total_pages || 1);
+      setCurrentPage(searchResults.page || 1);
+      setLoading(false);
+      setIsFiltered(true);
+    }
+  }, [searchResults]);
+
   // Fetch properties when component mounts or filters change
   useEffect(() => {
-    fetchProperties();
-  }, [filters, sortBy, limit]);
+    // Only fetch properties if we're not using search results from parent
+    if (!searchResults && !isSearching) {
+      fetchProperties();
+    } else if (isSearching) {
+      setLoading(true);
+    }
+  }, [filters, sortBy, currentPage, limit, searchResults, isSearching]);
 
   // Handle sort change
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
+    // Reset to first page when sorting changes
+    setCurrentPage(1);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   return (
@@ -134,9 +169,14 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
         <div className="flex justify-between items-end">
           <div className="relative">
             <h2 className="text-3xl font-light text-[#111827] relative inline-block">
-              Featured Properties
+              {isFiltered || searchResults ? 'Search Results' : 'Featured Properties'}
               <span className="absolute -bottom-3 left-0 w-1/2 h-0.5 bg-[#111827]"></span>
             </h2>
+            {isFiltered || searchResults ? (
+              <p className="text-sm text-gray-500 mt-4">
+                {totalProperties} {totalProperties === 1 ? 'property' : 'properties'} found
+              </p>
+            ) : null}
           </div>
           <div className="flex items-center space-x-3">
             <span className="text-gray-600 hidden sm:inline text-sm">Sort by:</span>
@@ -189,7 +229,16 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
             <div className="col-span-full text-center py-10">
               <p className="text-gray-500">No properties available matching your criteria.</p>
               <button
-                onClick={() => setFilters({})}
+                onClick={() => {
+                  setFilters({});
+                  setIsFiltered(false);
+                  setCurrentPage(1);
+                  // If we're in search mode, we need to reset the parent component
+                  if (searchResults) {
+                    // This will trigger a re-fetch in the parent
+                    window.location.reload();
+                  }
+                }}
                 className="mt-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
               >
                 Clear Filters
@@ -199,8 +248,59 @@ const PropertySearchResults = ({ initialFilters = {}, limit = 6 }) => {
         </div>
       )}
 
+      {/* Pagination controls */}
+      {totalPages > 1 && properties.length > 0 && (
+        <div className="flex justify-center mt-12">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-1.5 border ${currentPage === 1 ? 'border-gray-200 text-gray-400' : 'border-gray-300 text-gray-700 hover:border-[#111827]'} transition-colors`}
+            >
+              Prev
+            </button>
+            
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              // Calculate page numbers to show (current page and nearby pages)
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`w-9 h-9 flex items-center justify-center ${
+                    pageNum === currentPage
+                      ? 'bg-[#111827] text-white'
+                      : 'border border-gray-300 text-gray-700 hover:border-[#111827]'
+                  } transition-colors`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1.5 border ${currentPage === totalPages ? 'border-gray-200 text-gray-400' : 'border-gray-300 text-gray-700 hover:border-[#111827]'} transition-colors`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* View All Properties Link - Elegant minimalist design */}
-      {properties.length > 0 && (
+      {properties.length > 0 && !isFiltered && (
         <div className="mt-16 text-center">
           <Link href="/properties" className="inline-block group">
             <div className="relative overflow-hidden">
