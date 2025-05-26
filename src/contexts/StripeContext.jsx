@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import PaymentService from '@/services/payment';
+import { MockElements } from '@/components/MockStripeElements';
 
 // Create context
 const StripeContext = createContext(null);
@@ -22,6 +23,7 @@ export const StripeProvider = ({ children }) => {
   const [stripePromise, setStripePromise] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [useMockImplementation, setUseMockImplementation] = useState(false);
 
   useEffect(() => {
     const initializeStripe = async () => {
@@ -33,20 +35,24 @@ export const StripeProvider = ({ children }) => {
         // Check if the publishable key is valid
         if (!publishableKey || publishableKey === 'pk_test_your_test_key') {
           console.warn('Using mock Stripe implementation because API keys are not properly configured');
-          // Set a mock Stripe instance
+          // Use mock implementation
+          setUseMockImplementation(true);
           setStripePromise(null);
           setError(null);
+          setLoading(false);
           return;
         }
 
         // Initialize Stripe with the publishable key
         const stripeInstance = loadStripe(publishableKey);
         setStripePromise(stripeInstance);
+        setUseMockImplementation(false);
         setError(null);
       } catch (err) {
         console.error('Error initializing Stripe:', err);
         console.warn('Falling back to mock Stripe implementation');
-        // Set a mock Stripe instance
+        // Use mock implementation
+        setUseMockImplementation(true);
         setStripePromise(null);
         setError(null);
       } finally {
@@ -60,6 +66,16 @@ export const StripeProvider = ({ children }) => {
   // Create a payment intent for a booking
   const createPaymentIntent = async (bookingId, options = {}) => {
     try {
+      if (useMockImplementation) {
+        // Return mock payment intent data
+        return {
+          id: 'mock_payment_intent_id',
+          client_secret: 'mock_client_secret',
+          amount: 1000,
+          currency: 'usd',
+          status: 'requires_payment_method'
+        };
+      }
       return await PaymentService.createPaymentIntent(bookingId, options);
     } catch (err) {
       console.error('Error creating payment intent:', err);
@@ -70,6 +86,16 @@ export const StripeProvider = ({ children }) => {
   // Process a payment
   const processPayment = async (paymentIntentId, paymentMethodId, savePaymentMethod = false) => {
     try {
+      if (useMockImplementation) {
+        // Return mock payment result
+        return {
+          success: true,
+          payment_intent: {
+            id: paymentIntentId,
+            status: 'succeeded'
+          }
+        };
+      }
       return await PaymentService.processPayment(paymentIntentId, paymentMethodId, savePaymentMethod);
     } catch (err) {
       console.error('Error processing payment:', err);
@@ -82,7 +108,8 @@ export const StripeProvider = ({ children }) => {
     loading,
     error,
     createPaymentIntent,
-    processPayment
+    processPayment,
+    useMockImplementation
   };
 
   // If Stripe is still loading, show a loading indicator
@@ -108,16 +135,16 @@ export const StripeProvider = ({ children }) => {
   // Render the Stripe Elements provider with the initialized Stripe instance
   return (
     <StripeContext.Provider value={value}>
-      {stripePromise ? (
+      {stripePromise && !useMockImplementation ? (
         <Elements stripe={stripePromise}>
           {children}
         </Elements>
       ) : (
-        // If Stripe is not initialized, we still need to provide a mock Elements context
-        // This allows the StripePaymentForm to render without errors
-        <div className="mock-stripe-elements">
+        // If Stripe is not initialized or we're using mock implementation,
+        // wrap children in our MockElements provider
+        <MockElements>
           {children}
-        </div>
+        </MockElements>
       )}
     </StripeContext.Provider>
   );

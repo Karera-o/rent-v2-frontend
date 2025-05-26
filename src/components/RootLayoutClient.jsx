@@ -9,6 +9,7 @@ import GoogleAuthProvider from '@/components/GoogleAuthProvider'
 import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 import PWALayout from '@/components/PWALayout'
 import useIsPWA from '@/hooks/useIsPWA'
+import { StripeProvider } from '@/contexts/StripeContext'
 
 export default function RootLayoutClient({ children }) {
   const pathname = usePathname()
@@ -21,13 +22,15 @@ export default function RootLayoutClient({ children }) {
   return (
     <GoogleAuthProvider>
       <AuthProvider>
-        {shouldShowNavAndFooter && <Navbar className={isPWA ? 'hide-in-pwa' : ''} />}
-        <PWALayout>
-          <main>{children}</main>
-        </PWALayout>
-        {shouldShowNavAndFooter && <Footer className={isPWA ? 'hide-in-pwa' : ''} />}
-        <Toaster />
-        <PWAInstallPrompt />
+        <StripeProvider>
+          {shouldShowNavAndFooter && <Navbar className={isPWA ? 'hide-in-pwa' : ''} />}
+          <PWALayout>
+            <main>{children}</main>
+          </PWALayout>
+          {shouldShowNavAndFooter && <Footer className={isPWA ? 'hide-in-pwa' : ''} />}
+          <Toaster />
+          <PWAInstallPrompt />
+        </StripeProvider>
       </AuthProvider>
     </GoogleAuthProvider>
   )
