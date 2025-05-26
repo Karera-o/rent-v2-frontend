@@ -21,6 +21,7 @@ import BookingSection from './BookingSection'
 import ZoomablePropertyImage from '@/components/ZoomablePropertyImage'
 import PropertyImage from '@/components/PropertyImage'
 import PropertyService from '@/services/property'
+import PropertyMap from '@/components/PropertyMap'
 
 export default function PropertyDetailsPage({ params }) {
   const [property, setProperty] = useState(null);
@@ -383,7 +384,7 @@ export default function PropertyDetailsPage({ params }) {
 
               {/* Additional Services */}
               {additionalServices.length > 0 && (
-                <div>
+                <div className="mb-10">
                   <h3 className="text-lg font-light text-[#111827] mb-4">Additional Services</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8">
                     {additionalServices.map((service, index) => (
@@ -395,6 +396,16 @@ export default function PropertyDetailsPage({ params }) {
                   </div>
                 </div>
               )}
+              
+              {/* Property Location Map */}
+              <div className="mb-10">
+                <PropertyMap 
+                  latitude={property.latitude} 
+                  longitude={property.longitude}
+                  title={property.title}
+                  address={`${property.address}, ${property.city}, ${property.state}`}
+                />
+              </div>
             </div>
           </div>
 
