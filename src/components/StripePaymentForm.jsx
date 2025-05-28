@@ -69,7 +69,7 @@ export default function StripePaymentForm({
   const mockStripe = useMockStripe();
   const mockElements = useMockElements();
   
-  const { createPaymentIntent, processPayment, useMockImplementation, resetStripeState } = useStripeContext();
+  const { createPaymentIntent, processPayment, useMockImplementation, resetStripeState, createQuickPaymentIntent } = useStripeContext();
   
   // Use either real or mock instances based on context flag
   const stripe = useMockImplementation ? mockStripe : realStripe;
@@ -122,9 +122,21 @@ export default function StripePaymentForm({
         // If execution reaches here, we need to create a new payment intent
         console.log(`[StripePaymentForm][${requestId}] No valid cached intent, creating new one`);
         
-        const paymentIntentData = await createPaymentIntent(bookingId, {
-          setupFutureUsage: saveCard ? 'off_session' : undefined
-        });
+        // Check if user is authenticated to determine which endpoint to use
+        const isAuthenticated = typeof window !== 'undefined' && (localStorage.getItem('token') || localStorage.getItem('accessToken'));
+        console.log(`[StripePaymentForm][${requestId}] User authentication status: ${isAuthenticated ? 'Authenticated' : 'Guest'}`);
+        
+        let paymentIntentData;
+        
+        if (isAuthenticated) {
+          // For authenticated users, use the regular payment intent endpoint with options
+          paymentIntentData = await createPaymentIntent(bookingId, {
+            setupFutureUsage: saveCard ? 'off_session' : undefined
+          });
+        } else {
+          // For guest users, use the simplified quick payment intent endpoint
+          paymentIntentData = await createQuickPaymentIntent(bookingId);
+        }
         
         console.log(`[StripePaymentForm][${requestId}] Payment intent created successfully:`, paymentIntentData);
         

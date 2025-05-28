@@ -67,13 +67,7 @@ export default function CheckoutPage({ params }) {
   useEffect(() => {
     console.log(`[CheckoutPage][${pageRenderID.current}] Mounting checkout page for booking ID: ${params.id}`);
     
-    // Check if user is authenticated
-    if (!authLoading && !isAuthenticated) {
-      console.log(`[CheckoutPage][${pageRenderID.current}] User not authenticated, redirecting to login`);
-      router.push('/login');
-      return;
-    }
-
+    // Remove authentication check - allow both authenticated and guest users
     const fetchBooking = async () => {
       try {
         console.log(`[CheckoutPage][${pageRenderID.current}] Fetching booking details for ID: ${params.id}`);
@@ -90,15 +84,14 @@ export default function CheckoutPage({ params }) {
       }
     };
 
-    if (isAuthenticated) {
-      fetchBooking();
-    }
+    // Fetch booking for both authenticated and non-authenticated users
+    fetchBooking();
     
     // Cleanup function
     return () => {
       console.log(`[CheckoutPage][${pageRenderID.current}] Unmounting checkout page for booking ID: ${params.id}`);
     };
-  }, [params.id, isAuthenticated, authLoading, router]);
+  }, [params.id, router]);
 
   // Memoize the payment form component to prevent unnecessary re-renders
   const paymentForm = React.useMemo(() => {
@@ -134,9 +127,9 @@ export default function CheckoutPage({ params }) {
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700 mb-6">{error || 'Booking not found'}</p>
-          <Link href="/dashboard/user/bookings">
+          <Link href={!isAuthenticated ? "/" : "/dashboard/user/bookings"}>
             <button className="bg-gradient-to-r from-[#111827] to-[#1f2937] text-white py-2 px-4 rounded-md hover:opacity-90 transition-opacity font-medium">
-              Go to My Bookings
+              {!isAuthenticated ? "Return to Home" : "Go to My Bookings"}
             </button>
           </Link>
         </div>

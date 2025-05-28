@@ -9,6 +9,7 @@ import 'react-date-range/dist/theme/default.css';
 import BookingService from '@/services/booking';
 import { useAuth } from '@/contexts/AuthContext';
 import TermsAndConditionsModal from '@/components/TermsAndConditionsModal';
+// import { log } from 'console';
 
 export default function BookingSection({ property }) {
   const router = useRouter();
@@ -157,13 +158,6 @@ export default function BookingSection({ property }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      // Redirect to login page with return URL
-      router.push(`/login?redirect=${encodeURIComponent(`/properties/${property.id}`)}`);
-      return;
-    }
-
     // Validate form
     if (!validateForm()) {
       return;
@@ -173,7 +167,7 @@ export default function BookingSection({ property }) {
     setBookingError(null);
 
     try {
-      // Create booking
+      // Common booking data for both authenticated and guest users
       const bookingData = {
         property_id: property.id,
         check_in_date: dateRange[0].startDate.toISOString().split('T')[0],
@@ -182,11 +176,33 @@ export default function BookingSection({ property }) {
         guest_name: formData.guestName,
         guest_email: formData.guestEmail,
         guest_phone: formData.guestPhone,
-        date_of_birth: formData.dateOfBirth,
-        special_requests: formData.specialRequests
+        special_requests: formData.specialRequests,
       };
 
-      const booking = await BookingService.createBooking(bookingData);
+      let booking;
+
+      // If user is authenticated, use regular booking endpoint
+      if (isAuthenticated && user) {
+        booking = await BookingService.createBooking(bookingData);
+        console.log(isAuthenticated);
+        console.log("testing the bookings");
+        // console.log();
+        
+      } else {
+        // For guest bookings, add user info for account creation
+        console.log("Guest testing the bookings");
+        const guestBookingData = {
+          ...bookingData,
+          user_info: {
+            full_name: formData.guestName,
+            email: formData.guestEmail,
+            phone_number: formData.guestPhone,
+            birthday: formData.dateOfBirth
+          }
+        };
+        
+        booking = await BookingService.createGuestBooking(guestBookingData);
+      }
 
       // Redirect to checkout page with booking ID
       router.push(`/checkout/${booking.id}`);
@@ -422,11 +438,11 @@ export default function BookingSection({ property }) {
             )}
 
             {!isAuthenticated && !authLoading && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded flex items-start">
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-start">
                 <User className="h-5 w-5 mr-2 mt-0.5" />
                 <div>
-                  <p className="font-medium">Login Required</p>
-                  <p className="text-sm">You need to be logged in to book this property. You'll be redirected to login when you click "Book Now".</p>
+                  <p className="font-medium">Guest Booking Available</p>
+                  <p className="text-sm">You can book as a guest without logging in. Fill in your information and proceed to payment.</p>
                 </div>
               </div>
             )}

@@ -44,15 +44,15 @@ const PaymentService = {
     
     try {
       // Determine if we should use the authenticated or guest endpoint
-      const isAuthenticated = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const isAuthenticated = typeof window !== 'undefined' && (localStorage.getItem('token') || localStorage.getItem('accessToken'));
       console.log(`[PaymentService] User authentication status: ${isAuthenticated ? 'Authenticated' : 'Guest'}`);
       
-      let endpoint = '/payments/intents';
+      let endpoint = '/api/payments/intents';
       let headers = {};
       
-      // For unauthenticated users, use the quick intent endpoint
+      // For unauthenticated users, use the guest endpoint
       if (!isAuthenticated) {
-        endpoint = '/payments/quick-intent';
+        endpoint = '/api/payments/guest/intent';
         console.log('[PaymentService] Using guest endpoint for payment intent:', endpoint);
       } else {
         // Add authorization header if authenticated
@@ -89,22 +89,17 @@ const PaymentService = {
         has_client_secret: !!(response.data.client_secret || response.data.stripe_client_secret)
       });
       
-      // Format the response based on which endpoint was used
-      if (endpoint === '/payments/quick-intent') {
-        // For quick intent, format it to match the structure expected by our components
-        const formattedResponse = {
-          id: response.data.id,
-          stripe_client_secret: response.data.client_secret,
-          amount: response.data.amount,
-          currency: 'usd',
-          status: 'requires_payment_method'
-        };
-        console.log('[PaymentService] Formatted quick intent response:', formattedResponse);
-        return formattedResponse;
-      }
+      // Format the response to ensure consistent structure
+      const formattedResponse = {
+        id: response.data.id,
+        stripe_client_secret: response.data.client_secret || response.data.stripe_client_secret,
+        amount: response.data.amount,
+        currency: response.data.currency || 'usd',
+        status: response.data.status || 'requires_payment_method'
+      };
       
-      // For authenticated endpoints, return data as is
-      return response.data;
+      console.log('[PaymentService] Formatted payment intent response:', formattedResponse);
+      return formattedResponse;
     } catch (error) {
       console.error('[PaymentService] Error creating payment intent:', error);
       
@@ -145,30 +140,8 @@ const PaymentService = {
     
     try {
       // Check if user is authenticated
-      const isAuthenticated = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const isAuthenticated = typeof window !== 'undefined' && (localStorage.getItem('token') || localStorage.getItem('accessToken'));
       console.log(`[PaymentService] User authentication status: ${isAuthenticated ? 'Authenticated' : 'Guest'}`);
-      
-      // If not authenticated, we don't need to call the confirm endpoint
-      // The frontend Stripe.js confirmCardPayment already completed the payment
-      if (!isAuthenticated) {
-        console.log('[PaymentService] Unauthenticated user - skipping backend confirmation');
-        
-        PaymentDebugService.addLog('INFO', 'Skipping backend confirmation for unauthenticated user', {
-          paymentIntentId
-        });
-        
-        return {
-          success: true,
-          payment_intent: {
-            id: paymentIntentId,
-            status: 'succeeded'
-          }
-        };
-      }
-      
-      // Add authorization header
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const headers = { Authorization: `Bearer ${token}` };
       
       // If no booking ID was provided, try to find it in cached data
       if (!bookingId) {
@@ -191,29 +164,47 @@ const PaymentService = {
         }
       }
       
-      // Build exactly the payload expected by the API
-      const payload = {
+      // Build payload based on user type
+      let endpoint = '/api/payments/confirm';
+      let payload = {
         payment_intent_id: paymentIntentId,
         data: {
           booking_id: bookingId
         }
       };
       
-      // Only include optional fields if they have values
-      if (paymentMethodId) {
-        payload.payment_method_id = paymentMethodId;
-      }
-      
-      if (savePaymentMethod) {
-        payload.save_payment_method = savePaymentMethod;
+      // For unauthenticated users, use guest endpoint
+      if (!isAuthenticated) {
+        endpoint = '/payments/guest/confirm';
+        payload = {
+          payment_intent_id: paymentIntentId,
+          booking_id: bookingId
+        };
+        
+        // Only include optional fields if they have values
+        if (paymentMethodId) {
+          payload.payment_method_id = paymentMethodId;
+        }
+        
+        console.log('[PaymentService] Using guest endpoint for payment confirmation:', endpoint);
+      } else {
+        // Add additional fields for authenticated users
+        if (paymentMethodId) {
+          payload.payment_method_id = paymentMethodId;
+        }
+        
+        if (savePaymentMethod) {
+          payload.save_payment_method = savePaymentMethod;
+        }
+        
+        console.log('[PaymentService] Using authenticated endpoint for payment confirmation:', endpoint);
       }
       
       console.log('[PaymentService] Confirming payment with payload:', JSON.stringify(payload, null, 2));
       
-      const endpoint = '/payments/confirm';
       PaymentDebugService.logApiRequest(endpoint, 'POST', payload);
       
-      const response = await api.post(endpoint, payload, { headers });
+      const response = await api.post(endpoint, payload);
       
       console.log('[PaymentService] Payment confirmation successful:', response.data);
       
@@ -570,6 +561,79 @@ const PaymentService = {
     } catch (error) {
       console.error('Error fetching payment statistics:', error);
       throw error.response?.data || { message: 'Failed to fetch payment statistics' };
+    }
+  },
+
+  /**
+   * Create a quick payment intent for a booking (simplified version)
+   * This method uses the quick-intent endpoint which only requires booking_id
+   * @param {number} bookingId - Booking ID
+   * @returns {Promise} - Promise with payment intent data
+   */
+  createQuickPaymentIntent: async (bookingId) => {
+    console.log(`[PaymentService] Creating quick payment intent for booking ID: ${bookingId}`);
+    
+    try {
+      const endpoint = `/payments/quick-intent`;
+      
+      const requestBody = {
+        booking_id: bookingId
+      };
+      
+      console.log(`[PaymentService] Using quick intent endpoint: ${endpoint}`);
+      console.log(`[PaymentService] Request body:`, requestBody);
+      
+      PaymentDebugService.logApiRequest(endpoint, 'POST', {});
+      
+      const response = await api.post(endpoint, requestBody);
+  //     const endpoint = '/payments/guest-intents';
+  
+  // const requestBody = {
+  //   booking_id: bookingId,
+  //   setup_future_usage: null
+  // };
+  
+  // console.log(`[PaymentService] Using guest intents endpoint: ${endpoint}`);
+  // console.log(`[PaymentService] Request body:`, requestBody);
+  
+  // PaymentDebugService.logApiRequest(endpoint, 'POST', requestBody);
+  
+  // const response = await api.post(endpoint, requestBody);
+      
+  //     console.log(`[PaymentService] Quick payment intent created successfully:`, response.data);
+      
+      PaymentDebugService.logApiResponse(endpoint, 'POST', response.status, {
+        id: response.data.id,
+        amount: response.data.amount,
+        has_client_secret: !!response.data.client_secret
+      });
+      
+      // Format the response to ensure consistent structure
+      const formattedResponse = {
+        id: response.data.id,
+        client_secret: response.data.client_secret,
+        amount: response.data.amount,
+        currency: response.data.currency || 'usd'
+      };
+      
+      console.log('[PaymentService] Formatted quick payment intent response:', formattedResponse);
+      return formattedResponse;
+    } catch (error) {
+      console.error('[PaymentService] Error creating quick payment intent:', error);
+      
+      PaymentDebugService.logError('Failed to create quick payment intent', error);
+      
+      // Handle rate limiting specifically
+      if (error.response && error.response.status === 429) {
+        throw { message: 'Rate limit exceeded. Please try again later.', isRateLimit: true };
+      }
+      
+      if (error.response) {
+        console.error('[PaymentService] Error response status:', error.response.status);
+        console.error('[PaymentService] Error response data:', error.response.data);
+      }
+      
+      throw error.response?.data || { message: 'Failed to create quick payment intent' };
     }
   }
 };

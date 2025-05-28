@@ -17,15 +17,94 @@ const BookingService = {
   },
 
   /**
+   * Create a new booking for a guest (non-authenticated user)
+   * @param {Object} bookingData - Booking data with guest information
+   * @returns {Promise} - Promise with created booking data
+   */
+  createGuestBooking: async (bookingData) => {
+    try {
+      console.log('Creating guest booking with data:', bookingData);
+      const response = await api.post('/bookings/guest', bookingData);
+      console.log('Guest booking created successfully:', response.data);
+      
+      // Cache guest booking information for future access
+      if (response.data && response.data.id && typeof window !== 'undefined') {
+        const cachedBookingKey = `guest_booking_${response.data.id}`;
+        const guestInfo = {
+          ...response.data,
+          guest_email: bookingData.guest_email || bookingData.user_info?.email,
+          cached_at: new Date().toISOString()
+        };
+        localStorage.setItem(cachedBookingKey, JSON.stringify(guestInfo));
+        console.log(`Cached guest booking data for ID ${response.data.id} with email: ${guestInfo.guest_email}`);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creating guest booking:', error);
+      throw error.response?.data || { message: 'Failed to create guest booking' };
+    }
+  },
+
+  /**
    * Get booking details by ID
    * @param {number} id - Booking ID
+   * @param {string} guestEmail - Guest email (required for unauthenticated users)
    * @returns {Promise} - Promise with booking details
    */
-  getBookingById: async (id) => {
+  getBookingById: async (id, guestEmail = null) => {
     try {
       console.log(`Fetching booking with ID: ${id}`);
-      const response = await api.get(`/bookings/${id}`);
+      
+      // Check if user is authenticated
+      const isAuthenticated = typeof window !== 'undefined' && (localStorage.getItem('token') || localStorage.getItem('accessToken'));
+      console.log(`User authentication status: ${isAuthenticated ? 'Authenticated' : 'Guest'}`);
+      
+      let response;
+      
+      if (isAuthenticated) {
+        // For authenticated users, use the protected endpoint
+        console.log(`Using authenticated endpoint for booking ${id}`);
+        response = await api.get(`/bookings/${id}`);
+      } else {
+        // For guest users, use the guest-access endpoint
+        console.log(`Using guest-access endpoint for booking ${id}`);
+        
+        // If no guest email provided, try to get it from localStorage (cached from booking creation)
+        let emailToUse = guestEmail;
+        if (!emailToUse && typeof window !== 'undefined') {
+          // Try to get guest email from cached booking data
+          const cachedBookingKey = `guest_booking_${id}`;
+          const cachedBooking = localStorage.getItem(cachedBookingKey);
+          if (cachedBooking) {
+            try {
+              const parsedBooking = JSON.parse(cachedBooking);
+              emailToUse = parsedBooking.guest_email;
+              console.log(`Using cached guest email for booking ${id}: ${emailToUse}`);
+            } catch (e) {
+              console.error('Error parsing cached booking data:', e);
+            }
+          }
+        }
+        
+        if (!emailToUse) {
+          throw new Error('Guest email is required to access booking details');
+        }
+        
+        response = await api.post(`/bookings/${id}/guest-access`, {
+          guest_email: emailToUse
+        });
+      }
+      
       console.log(`Booking data received for ID ${id}:`, response.data);
+      
+      // Cache guest booking data for future reference
+      if (!isAuthenticated && response.data && typeof window !== 'undefined') {
+        const cachedBookingKey = `guest_booking_${id}`;
+        localStorage.setItem(cachedBookingKey, JSON.stringify(response.data));
+        console.log(`Cached guest booking data for future access: ${id}`);
+      }
+      
       return response.data;
     } catch (error) {
       console.error(`Error fetching booking ${id}:`, error);

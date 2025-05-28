@@ -293,6 +293,117 @@ export const StripeProvider = ({ children }) => {
     }
   };
 
+  // Create a quick payment intent for a booking (simplified version)
+  const createQuickPaymentIntent = async (bookingId) => {
+    try {
+      console.log(`[StripeContext] createQuickPaymentIntent called for booking ID: ${bookingId}`);
+      
+      // Check cache first
+      const bookingCacheKey = `payment_intent_booking_${bookingId}`;
+      
+      if (typeof window !== 'undefined') {
+        const cachedIntent = localStorage.getItem(bookingCacheKey);
+        if (cachedIntent) {
+          try {
+            const parsedIntent = JSON.parse(cachedIntent);
+            console.log('[StripeContext] Using cached quick payment intent:', parsedIntent.id);
+            return parsedIntent;
+          } catch (e) {
+            console.error('[StripeContext] Error parsing cached quick intent:', e);
+            localStorage.removeItem(bookingCacheKey);
+          }
+        }
+      }
+      
+      // Check if we need to use mock implementation
+      if (useMockImplementation) {
+        console.log('[StripeContext] Using mock implementation for quick payment intent');
+        
+        const uniqueId = `mock_quick_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        
+        const mockIntent = {
+          id: uniqueId,
+          client_secret: 'mock_client_secret',
+          amount: 1000,
+          currency: 'usd',
+          booking_id: bookingId,
+          created_at: new Date().toISOString(),
+          is_mock: true
+        };
+        
+        // Cache the mock intent
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(bookingCacheKey, JSON.stringify(mockIntent));
+        }
+        
+        return mockIntent;
+      }
+      
+      console.log('[StripeContext] Creating new quick payment intent');
+      
+      const paymentIntentData = await PaymentService.createQuickPaymentIntent(bookingId);
+      
+      console.log('[StripeContext] Quick payment intent created successfully:', paymentIntentData.id);
+      
+      // Add metadata for tracking
+      paymentIntentData.booking_id = bookingId;
+      paymentIntentData.created_at = new Date().toISOString();
+      
+      // Cache the payment intent
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(bookingCacheKey, JSON.stringify(paymentIntentData));
+        
+        // Also cache by intent ID for easier lookup
+        if (paymentIntentData.id) {
+          localStorage.setItem(`payment_intent_${paymentIntentData.id}`, JSON.stringify(paymentIntentData));
+        }
+        
+        console.log('[StripeContext] Cached quick payment intent');
+      }
+      
+      return paymentIntentData;
+    } catch (err) {
+      console.error('[StripeContext] Error creating quick payment intent:', err);
+      
+      // Handle rate limiting similar to regular payment intent
+      if (err.isRateLimit || 
+          (err.message && (
+            err.message.includes('rate limit') || 
+            err.message.includes('too many requests')
+          )) ||
+          (err.response && err.response.status === 429)) {
+        
+        console.warn('[StripeContext] Rate limit detected during quick payment intent creation');
+        
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('stripe_rate_limited', 'true');
+          setUseMockImplementation(true);
+        }
+        
+        const uniqueId = `mock_quick_ratelimited_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const mockIntent = {
+          id: uniqueId,
+          client_secret: 'mock_client_secret',
+          amount: 1000,
+          currency: 'usd',
+          booking_id: bookingId,
+          created_at: new Date().toISOString(),
+          is_mock: true,
+          reason: 'rate_limited'
+        };
+        
+        if (typeof window !== 'undefined') {
+          const bookingCacheKey = `payment_intent_booking_${bookingId}`;
+          localStorage.setItem(bookingCacheKey, JSON.stringify(mockIntent));
+        }
+        
+        return mockIntent;
+      }
+      
+      throw err;
+    }
+  };
+
   // Process a payment
   const processPayment = async (paymentIntentId, paymentMethodId, savePaymentMethod = false, bookingId = null) => {
     try {
@@ -369,6 +480,7 @@ export const StripeProvider = ({ children }) => {
     loading,
     error,
     createPaymentIntent,
+    createQuickPaymentIntent,
     processPayment,
     useMockImplementation,
     resetStripeState

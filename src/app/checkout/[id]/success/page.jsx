@@ -18,19 +18,20 @@ export default function PaymentSuccessPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
     const fetchBooking = async () => {
       try {
         setLoading(true);
         const bookingData = await BookingService.getBookingById(params.id);
         setBooking(bookingData);
+        
+        // Determine if this is a guest booking
+        if (bookingData.guest_email && bookingData.guest_phone && !isAuthenticated) {
+          setIsGuest(true);
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Error fetching booking:', err);
@@ -40,10 +41,9 @@ export default function PaymentSuccessPage({ params }) {
       }
     };
 
-    if (isAuthenticated) {
-      fetchBooking();
-    }
-  }, [params.id, isAuthenticated, authLoading, router]);
+    // Fetch booking regardless of authentication status
+    fetchBooking();
+  }, [params.id, isAuthenticated]);
 
   const generateBookingPDF = () => {
     if (!booking) return;
@@ -101,7 +101,7 @@ export default function PaymentSuccessPage({ params }) {
     }
   };
 
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white flex justify-center items-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
@@ -115,9 +115,9 @@ export default function PaymentSuccessPage({ params }) {
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700 mb-6">{error || 'Booking not found'}</p>
-          <Link href="/dashboard/user/bookings">
+          <Link href="/">
             <button className="bg-gradient-to-r from-[#111827] to-[#1f2937] text-white py-2 px-4 rounded-md hover:opacity-90 transition-opacity font-medium">
-              Go to My Bookings
+              Return to Home
             </button>
           </Link>
         </div>
@@ -138,6 +138,14 @@ export default function PaymentSuccessPage({ params }) {
               <h1 className="text-3xl font-bold text-[#111827] mb-2">Booking Confirmed!</h1>
               <p className="text-gray-600">Your payment has been processed successfully.</p>
               <p className="text-gray-600 mt-1">Booking Reference: <span className="font-medium">#{booking.id}</span></p>
+              
+              {isGuest && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md inline-block">
+                  <p className="text-sm text-blue-700">
+                    A confirmation email has been sent to {booking.guest_email}
+                  </p>
+                </div>
+              )}
             </div>
             
             {/* Booking Details */}
@@ -179,6 +187,19 @@ export default function PaymentSuccessPage({ params }) {
                 </div>
               </div>
               
+              {/* Guest Information for guest bookings */}
+              {isGuest && (
+                <div className="flex items-start">
+                  <User className="h-6 w-6 text-gray-400 mt-1 mr-4 flex-shrink-0" />
+                  <div>
+                    <h2 className="text-xl font-semibold text-[#111827] mb-2">Guest Information</h2>
+                    <p className="text-gray-600"><span className="font-medium">Name:</span> {booking.guest_name}</p>
+                    <p className="text-gray-600"><span className="font-medium">Email:</span> {booking.guest_email}</p>
+                    <p className="text-gray-600"><span className="font-medium">Phone:</span> {booking.guest_phone}</p>
+                  </div>
+                </div>
+              )}
+              
               {/* Payment Info */}
               <div className="flex items-start">
                 <CreditCard className="h-6 w-6 text-gray-400 mt-1 mr-4 flex-shrink-0" />
@@ -216,17 +237,41 @@ export default function PaymentSuccessPage({ params }) {
                   )}
                 </Button>
                 
-                <Link href="/dashboard/user/bookings">
-                  <Button className="w-full bg-[#111827] hover:bg-[#1f2937] text-white">
-                    View My Bookings
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
+                {isAuthenticated ? (
+                  <Link href="/dashboard/user/bookings">
+                    <Button className="w-full bg-[#111827] hover:bg-[#1f2937] text-white">
+                      View My Bookings
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/">
+                    <Button className="w-full bg-[#111827] hover:bg-[#1f2937] text-white">
+                      Return to Home
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                )}
               </div>
+
+              {/* Create Account Prompt for Guests */}
+              {isGuest && (
+                <div className="mt-8 p-6 bg-blue-50 border border-blue-100 rounded-md">
+                  <h3 className="text-lg font-semibold text-[#111827] mb-2">Create an Account</h3>
+                  <p className="text-gray-600 mb-4">
+                    Create an account to easily manage your bookings, view your stay history, and receive exclusive offers.
+                  </p>
+                  <Link href="/register">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                      Create Account
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}
