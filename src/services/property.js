@@ -60,7 +60,7 @@ const PropertyService = {
       console.log('Sending search params to API:', formattedParams);
 
       // Use the exact endpoint format from the example
-      const baseUrl = '/properties';
+      const baseUrl = '/properties/';
       const response = await api.get(baseUrl, {
         params: formattedParams
       });
