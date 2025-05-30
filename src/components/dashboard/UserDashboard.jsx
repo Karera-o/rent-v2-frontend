@@ -2,13 +2,11 @@
 
 import {
   CalendarCheck,
-  Heart,
   MessageSquare,
   Star,
   CheckCircle,
   Clock,
   XCircle,
-  Home,
   Loader2
 } from "lucide-react";
 import Link from "next/link";
@@ -130,12 +128,6 @@ export default function UserDashboard() {
       link: "/dashboard/user/bookings"
     },
     {
-      title: "Saved Properties",
-      value: "0",
-      icon: <Heart className="h-8 w-8 text-red-500" />,
-      link: "/dashboard/user/bookings"
-    },
-    {
       title: "Total Bookings",
       value: loading ? <Loader2 className="h-6 w-6 text-green-500 animate-spin" /> : totalBookingsCount,
       icon: <MessageSquare className="h-8 w-8 text-green-500" />,
@@ -155,28 +147,6 @@ export default function UserDashboard() {
     .sort((a, b) => new Date(b.rawCheckIn) - new Date(a.rawCheckIn))
     .slice(0, 3);
 
-  // Mock favorites data (to be replaced with real data in the future)
-  const favorites = [
-    {
-      property: "Beachfront Cottage",
-      location: "Malibu, CA",
-      price: "$350/night",
-      rating: "4.9"
-    },
-    {
-      property: "Mountain Cabin",
-      location: "Aspen, CO",
-      price: "$275/night",
-      rating: "4.8"
-    },
-    {
-      property: "Downtown Loft",
-      location: "New York, NY",
-      price: "$420/night",
-      rating: "4.7"
-    }
-  ];
-
   const getStatusIcon = (status) => {
     switch(status) {
       case "Confirmed":
@@ -193,21 +163,21 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">
           Welcome Back, {user?.first_name || user?.username || 'Guest'}
         </h1>
         <Link
           href="/properties"
-          className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90"
+          className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 inline-flex items-center"
         >
           Browse Properties
         </Link>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-3">
         {stats.map((stat, index) => (
           <Link
             key={index}
@@ -232,13 +202,19 @@ export default function UserDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1">
         {/* Recent Bookings */}
-        <div className="bg-white rounded-lg shadow border border-gray-200 col-span-2">
-          <div className="px-6 py-5 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow border border-gray-200">
+          <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
             <h3 className="text-lg font-medium leading-6 text-gray-900">
               Upcoming Stays
             </h3>
+            <Link
+              href="/dashboard/user/bookings"
+              className="text-sm font-medium text-primary hover:text-primary/80 hidden sm:block"
+            >
+              View all bookings
+            </Link>
           </div>
           <div className="overflow-x-auto">
             {loading ? (
@@ -280,112 +256,72 @@ export default function UserDashboard() {
                 </button>
               </div>
             ) : recentBookings.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">You don't have any bookings yet.</p>
-                <Link href="/properties" className="text-primary hover:underline mt-2 inline-block">
-                  Browse properties to book your first stay
+              <div className="text-center py-16 px-4">
+                <CalendarCheck className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h4>
+                <p className="text-gray-500 max-w-md mx-auto mb-6">You don't have any upcoming stays. Browse our properties to find your next perfect accommodation.</p>
+                <Link 
+                  href="/properties" 
+                  className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                >
+                  Browse Properties
                 </Link>
               </div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Property
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dates
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {recentBookings.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                        <Link href={`/dashboard/user/bookings/${booking.id}`}>
-                          {booking.property}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {booking.checkIn} – {booking.checkOut}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {getStatusIcon(booking.status)}
-                          <span className="ml-1.5 text-xs font-medium">
-                            {booking.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {booking.amount}
-                      </td>
+              <div className="overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Property
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Dates
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recentBookings.map((booking) => (
+                      <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                          <Link href={`/dashboard/user/bookings/${booking.id}`} className="hover:underline">
+                            {booking.property}
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {booking.checkIn} – {booking.checkOut}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {getStatusIcon(booking.status)}
+                            <span className="ml-1.5 text-xs font-medium">
+                              {booking.status}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {booking.amount}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
           <div className="px-6 py-4 border-t border-gray-200">
             <Link
               href="/dashboard/user/bookings"
-              className="text-sm font-medium text-primary hover:text-primary/80"
+              className="text-sm font-medium text-primary hover:text-primary/80 sm:hidden"
             >
-              View booking history
+              View all bookings
             </Link>
-          </div>
-        </div>
-
-        {/* Favorites */}
-        <div className="bg-white rounded-lg shadow border border-gray-200">
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">
-              Favorite Properties
-            </h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {favorites.map((property, index) => (
-                <div key={index} className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <Home className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <div className="text-sm font-medium text-gray-900">
-                      {property.property}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {property.location}
-                    </div>
-                    <div className="mt-2 flex justify-between items-center">
-                      <span className="text-sm font-medium text-primary">
-                        {property.price}
-                      </span>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400" />
-                        <span className="ml-1 text-sm text-gray-600">
-                          {property.rating}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6">
-              <Link
-                href="/dashboard/user/saved"
-                className="text-sm font-medium text-primary hover:text-primary/80"
-              >
-                View all favorites
-              </Link>
-            </div>
           </div>
         </div>
       </div>

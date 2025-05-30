@@ -68,7 +68,7 @@ export default function UserSidebar() {
 
           {/* Messages menu item removed for this iteration */}
 
-          <li>
+          {/* <li>
             <Link
               href="/dashboard/user/saved"
               className={`flex items-center px-4 py-2 rounded-md ${
@@ -80,7 +80,7 @@ export default function UserSidebar() {
               <Heart className="mr-3 h-5 w-5" />
               Saved Properties
             </Link>
-          </li>
+          </li> */}
         </ul>
 
         {/* Settings and Logout at bottom */}
