@@ -87,15 +87,15 @@ export default function BookingDetailPage({ params }) {
           },
           status: bookingData.status.charAt(0).toUpperCase() + bookingData.status.slice(1),
           host: {
-            name: `${bookingData.property.owner.first_name || ''} ${bookingData.property.owner.last_name || ''}`.trim() || bookingData.property.owner.username,
-            phone: bookingData.property.owner.phone_number || 'Not provided',
-            email: bookingData.property.owner.email,
+            name: bookingData.property.owner ? bookingData.property.owner.username || 'Host' : 'Host',
+            phone: bookingData.property.owner ? bookingData.property.owner.phone_number || 'Not provided' : 'Not provided',
+            email: bookingData.property.owner ? bookingData.property.owner.email || 'Not provided' : 'Not provided',
           },
           bookingDate: formatDate(bookingData.created_at),
           guests: bookingData.guests,
           isPaid: bookingData.is_paid,
           propertyDetails: {
-            type: bookingData.property.property_type.charAt(0).toUpperCase() + bookingData.property.property_type.slice(1),
+            type: bookingData.property.type ? bookingData.property.type.charAt(0).toUpperCase() + bookingData.property.type.slice(1) : 'Property',
             bedrooms: bookingData.property.bedrooms,
             bathrooms: bookingData.property.bathrooms,
             amenities: [],
@@ -103,16 +103,27 @@ export default function BookingDetailPage({ params }) {
           rawData: bookingData,
         };
 
-        // Extract amenities
+        // Extract amenities if available
         const amenities = [];
-        if (bookingData.property.has_wifi) amenities.push('WiFi');
-        if (bookingData.property.has_kitchen) amenities.push('Kitchen');
-        if (bookingData.property.has_air_conditioning) amenities.push('Air Conditioning');
-        if (bookingData.property.has_heating) amenities.push('Heating');
-        if (bookingData.property.has_tv) amenities.push('TV');
-        if (bookingData.property.has_parking) amenities.push('Parking');
-        if (bookingData.property.has_pool) amenities.push('Pool');
-        if (bookingData.property.has_gym) amenities.push('Gym');
+        const property = bookingData.property;
+        if (property.has_wifi === true) amenities.push('WiFi');
+        if (property.has_kitchen === true) amenities.push('Kitchen');
+        if (property.has_air_conditioning === true) amenities.push('Air Conditioning');
+        if (property.has_heating === true) amenities.push('Heating');
+        if (property.has_tv === true) amenities.push('TV');
+        if (property.has_parking === true) amenities.push('Parking');
+        if (property.has_pool === true) amenities.push('Pool');
+        if (property.has_gym === true) amenities.push('Gym');
+        
+        // Add additional amenities from the API if they exist
+        if (property.amenities && Array.isArray(property.amenities)) {
+          property.amenities.forEach(amenity => {
+            if (typeof amenity === 'string' && !amenities.includes(amenity)) {
+              amenities.push(amenity);
+            }
+          });
+        }
+        
         formattedBooking.propertyDetails.amenities = amenities;
 
         setBooking(formattedBooking);
@@ -370,15 +381,6 @@ export default function BookingDetailPage({ params }) {
                 </>
               )}
             </button>
-            <button className="w-full flex justify-center items-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50">
-              <Mail className="h-4 w-4 mr-2" />
-              Contact Host
-            </button>
-            {booking.status !== 'Cancelled' && booking.status !== 'Completed' && (
-              <button className="w-full flex justify-center items-center border border-red-500 text-red-500 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-50">
-                Cancel Booking
-              </button>
-            )}
           </div>
         </div>
       </div>
