@@ -28,7 +28,9 @@ export default function PaymentSuccessPage({ params }) {
         setBooking(bookingData);
         
         // Determine if this is a guest booking
-        if (bookingData.guest_email && bookingData.guest_phone && !isAuthenticated) {
+        const guestEmail = bookingData.guest_email || bookingData.guest_email;
+        const guestPhone = bookingData.guest_phone || bookingData.guest_phone;
+        if (guestEmail && guestPhone && !isAuthenticated) {
           setIsGuest(true);
         }
         
@@ -53,6 +55,17 @@ export default function PaymentSuccessPage({ params }) {
     try {
       const doc = new jsPDF();
       
+      // Extract booking properties using the new format structure
+      const bookingId = booking.id || booking.booking_id;
+      const propertyTitle = booking.property?.title || booking.property_name;
+      const propertyAddress = booking.property?.address || booking.property_address;
+      const propertyCity = booking.property?.city || (booking.property_address ? booking.property_address.split(',')[0] : '');
+      const propertyState = booking.property?.state || (booking.property_address ? booking.property_address.split(',')[1] : '');
+      const checkInDate = booking.check_in_date || booking.checkin_date;
+      const checkOutDate = booking.check_out_date || booking.checkout_date;
+      const guestCount = booking.guests || booking.guest_count;
+      const totalPrice = booking.total_price || booking.total_amount;
+      
       // Add logo or header
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
@@ -60,30 +73,42 @@ export default function PaymentSuccessPage({ params }) {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Booking Reference: #${booking.id}`, 20, 40);
+      doc.text(`Booking Reference: #${bookingId}`, 20, 40);
       doc.text(`Date: ${format(new Date(), 'MMM dd, yyyy')}`, 20, 50);
       
       // Property details
       doc.setFont('helvetica', 'bold');
       doc.text('Property Details', 20, 70);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${booking.property.title}`, 20, 80);
-      doc.text(`${booking.property.address}`, 20, 90);
-      doc.text(`${booking.property.city}, ${booking.property.state}`, 20, 100);
+      doc.text(`${propertyTitle}`, 20, 80);
+      doc.text(`${propertyAddress}`, 20, 90);
+      if (propertyCity && propertyState) {
+        doc.text(`${propertyCity}, ${propertyState}`, 20, 100);
+      }
       
       // Booking details
       doc.setFont('helvetica', 'bold');
       doc.text('Booking Details', 20, 120);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Check-in: ${format(new Date(booking.check_in_date), 'MMM dd, yyyy')}`, 20, 130);
-      doc.text(`Check-out: ${format(new Date(booking.check_out_date), 'MMM dd, yyyy')}`, 20, 140);
-      doc.text(`Guests: ${booking.guests}`, 20, 150);
+      
+      // Format dates correctly handling both date objects and formatted strings
+      const formatBookingDate = (date) => {
+        if (!date) return 'N/A';
+        if (typeof date === 'string' && date.includes('th')) {
+          return date;
+        }
+        return format(new Date(date), 'MMM dd, yyyy');
+      };
+      
+      doc.text(`Check-in: ${formatBookingDate(checkInDate)}`, 20, 130);
+      doc.text(`Check-out: ${formatBookingDate(checkOutDate)}`, 20, 140);
+      doc.text(`Guests: ${guestCount}`, 20, 150);
       
       // Payment details
       doc.setFont('helvetica', 'bold');
       doc.text('Payment Details', 20, 170);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Total Amount: $${booking.total_price}`, 20, 180);
+      doc.text(`Total Amount: $${totalPrice}`, 20, 180);
       doc.text(`Payment Status: Paid`, 20, 190);
       doc.text(`Payment Date: ${format(new Date(), 'MMM dd, yyyy')}`, 20, 200);
       
@@ -93,7 +118,7 @@ export default function PaymentSuccessPage({ params }) {
       doc.text('If you have any questions, please contact our support team.', 105, 260, { align: 'center' });
       
       // Save the PDF
-      doc.save(`booking-confirmation-${booking.id}.pdf`);
+      doc.save(`booking-confirmation-${bookingId}.pdf`);
     } catch (err) {
       console.error('Error generating PDF:', err);
     } finally {
@@ -124,6 +149,29 @@ export default function PaymentSuccessPage({ params }) {
       </div>
     );
   }
+  
+  // Extract booking properties for both old and new formats
+  const bookingId = booking.id || booking.booking_id;
+  const propertyTitle = booking.property?.title || booking.property_name;
+  const propertyAddress = booking.property?.address || booking.property_address;
+  const propertyCity = booking.property?.city || (booking.property_address ? booking.property_address.split(',')[0] : '');
+  const propertyState = booking.property?.state || (booking.property_address ? booking.property_address.split(',')[1] : '');
+  const checkInDate = booking.check_in_date || booking.checkin_date;
+  const checkOutDate = booking.check_out_date || booking.checkout_date;
+  const guestCount = booking.guests || booking.guest_count;
+  const totalPrice = booking.total_price || booking.total_amount;
+  const guestName = booking.guest_name || booking.first_name;
+  const guestEmail = booking.guest_email;
+  const guestPhone = booking.guest_phone;
+  
+  // Helper function to format dates
+  const formatBookingDate = (date) => {
+    if (!date) return 'N/A';
+    if (typeof date === 'string' && date.includes('th')) {
+      return date;
+    }
+    return format(new Date(date), 'MMM dd, yyyy');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white py-12">
@@ -137,12 +185,12 @@ export default function PaymentSuccessPage({ params }) {
               </div>
               <h1 className="text-3xl font-bold text-[#111827] mb-2">Booking Confirmed!</h1>
               <p className="text-gray-600">Your payment has been processed successfully.</p>
-              <p className="text-gray-600 mt-1">Booking Reference: <span className="font-medium">#{booking.id}</span></p>
+              <p className="text-gray-600 mt-1">Booking Reference: <span className="font-medium">#{bookingId}</span></p>
               
-              {isGuest && (
+              {isGuest && guestEmail && (
                 <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md inline-block">
                   <p className="text-sm text-blue-700">
-                    A confirmation email has been sent to {booking.guest_email}
+                    A confirmation email has been sent to {guestEmail}
                   </p>
                 </div>
               )}
@@ -155,9 +203,11 @@ export default function PaymentSuccessPage({ params }) {
                 <Home className="h-6 w-6 text-gray-400 mt-1 mr-4 flex-shrink-0" />
                 <div>
                   <h2 className="text-xl font-semibold text-[#111827] mb-2">Property Details</h2>
-                  <h3 className="font-medium text-gray-900">{booking.property.title}</h3>
-                  <p className="text-gray-600">{booking.property.address}</p>
-                  <p className="text-gray-600">{booking.property.city}, {booking.property.state}</p>
+                  <h3 className="font-medium text-gray-900">{propertyTitle}</h3>
+                  <p className="text-gray-600">{propertyAddress}</p>
+                  {propertyCity && propertyState && (
+                    <p className="text-gray-600">{propertyCity}, {propertyState}</p>
+                  )}
                 </div>
               </div>
               
@@ -170,19 +220,19 @@ export default function PaymentSuccessPage({ params }) {
                     <div>
                       <p className="text-sm font-medium text-gray-900">Check-in</p>
                       <p className="text-gray-600">
-                        {format(new Date(booking.check_in_date), 'MMM dd, yyyy')}
+                        {formatBookingDate(checkInDate)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">Check-out</p>
                       <p className="text-gray-600">
-                        {format(new Date(booking.check_out_date), 'MMM dd, yyyy')}
+                        {formatBookingDate(checkOutDate)}
                       </p>
                     </div>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-900">Guests</p>
-                    <p className="text-gray-600">{booking.guests} {booking.guests === 1 ? 'guest' : 'guests'}</p>
+                    <p className="text-gray-600">{guestCount} {guestCount === 1 ? 'guest' : 'guests'}</p>
                   </div>
                 </div>
               </div>
@@ -193,9 +243,9 @@ export default function PaymentSuccessPage({ params }) {
                   <User className="h-6 w-6 text-gray-400 mt-1 mr-4 flex-shrink-0" />
                   <div>
                     <h2 className="text-xl font-semibold text-[#111827] mb-2">Guest Information</h2>
-                    <p className="text-gray-600"><span className="font-medium">Name:</span> {booking.guest_name}</p>
-                    <p className="text-gray-600"><span className="font-medium">Email:</span> {booking.guest_email}</p>
-                    <p className="text-gray-600"><span className="font-medium">Phone:</span> {booking.guest_phone}</p>
+                    {guestName && <p className="text-gray-600"><span className="font-medium">Name:</span> {guestName}</p>}
+                    {guestEmail && <p className="text-gray-600"><span className="font-medium">Email:</span> {guestEmail}</p>}
+                    {guestPhone && <p className="text-gray-600"><span className="font-medium">Phone:</span> {guestPhone}</p>}
                   </div>
                 </div>
               )}
@@ -207,7 +257,7 @@ export default function PaymentSuccessPage({ params }) {
                   <h2 className="text-xl font-semibold text-[#111827] mb-2">Payment Details</h2>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Total Amount</span>
-                    <span className="font-semibold text-gray-900">${booking.total_price}</span>
+                    <span className="font-semibold text-gray-900">${totalPrice}</span>
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-gray-600">Payment Status</span>

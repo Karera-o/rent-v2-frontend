@@ -97,14 +97,18 @@ export default function CheckoutPage({ params }) {
   const paymentForm = React.useMemo(() => {
     if (!booking || paymentSuccess) return null;
     
-    console.log(`[CheckoutPage][${pageRenderID.current}] Creating payment form component for booking ID: ${booking.id}`);
+    // Check if we have the required fields for the payment form
+    const amount = booking.total_amount || booking.total_price;
+    if (!amount) return null;
+    
+    console.log(`[CheckoutPage][${pageRenderID.current}] Creating payment form component for booking ID: ${booking.id || booking.booking_id}`);
     paymentFormMounted.current = true;
     
     return (
       <StripePaymentForm 
-        key={`payment-form-${booking.id}`}
-        bookingId={booking.id}
-        amount={booking.total_price}
+        key={`payment-form-${booking.id || booking.booking_id}`}
+        bookingId={booking.id || booking.booking_id}
+        amount={parseFloat(amount)}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
         onProcessingChange={handlePaymentProcessing}
@@ -152,15 +156,33 @@ export default function CheckoutPage({ params }) {
     );
   }
 
+  // Extract properties based on the response format
+  const propertyId = booking?.property?.id || booking?.property_id;
+  const propertyTitle = booking?.property?.title || booking?.property_name;
+  const propertyLocation = booking?.property?.location || booking?.property_address;
+  const guestCount = booking?.guests || booking?.guest_count;
+  const checkInDate = booking?.check_in_date || booking?.checkin_date;
+  const checkOutDate = booking?.check_out_date || booking?.checkout_date;
+  const totalDays = booking?.total_days || booking?.nights;
+  const totalPrice = booking?.total_price || booking?.total_amount;
+  const subtotal = booking?.subtotal || booking?.accommodation_cost;
+  const pricePerNight = booking?.property?.price_per_night || 
+    (booking?.accommodation_cost && booking?.nights ? 
+      (parseFloat(booking.accommodation_cost) / parseInt(booking.nights)).toFixed(2) : 0);
+  const cleaningFee = booking?.cleaning_fee || 0;
+  const serviceFee = booking?.service_fee || booking?.taxes || 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#111827]/5 to-white py-12">
       <div className="container-responsive">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <Link href={`/properties/${booking.property.id}`} className="inline-flex items-center text-sm text-gray-600 hover:text-[#111827] mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to property
-            </Link>
+            {propertyId && (
+              <Link href={`/properties/${propertyId}`} className="inline-flex items-center text-sm text-gray-600 hover:text-[#111827] mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to property
+              </Link>
+            )}
             <h1 className="text-3xl font-bold text-[#111827]">Complete Your Booking</h1>
             <p className="text-gray-600 mt-2">Please review your booking details and complete payment</p>
           </div>
@@ -185,8 +207,8 @@ export default function CheckoutPage({ params }) {
                   <div className="flex items-start mb-4">
                     <Home className="h-5 w-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" />
                     <div>
-                      <h3 className="font-medium text-gray-900">{booking.property.title}</h3>
-                      <p className="text-sm text-gray-600">{booking.property.location}</p>
+                      <h3 className="font-medium text-gray-900">{propertyTitle}</h3>
+                      <p className="text-sm text-gray-600">{propertyLocation}</p>
                     </div>
                   </div>
                   
@@ -195,7 +217,11 @@ export default function CheckoutPage({ params }) {
                     <div>
                       <p className="text-sm font-medium text-gray-900">Check-in</p>
                       <p className="text-sm text-gray-600">
-                        {format(new Date(booking.check_in_date), 'MMM dd, yyyy')}
+                        {checkInDate ? 
+                          (typeof checkInDate === 'string' && checkInDate.includes('th') ? 
+                            checkInDate : 
+                            format(new Date(checkInDate), 'MMM dd, yyyy')) : 
+                          'N/A'}
                       </p>
                     </div>
                   </div>
@@ -205,7 +231,11 @@ export default function CheckoutPage({ params }) {
                     <div>
                       <p className="text-sm font-medium text-gray-900">Check-out</p>
                       <p className="text-sm text-gray-600">
-                        {format(new Date(booking.check_out_date), 'MMM dd, yyyy')}
+                        {checkOutDate ? 
+                          (typeof checkOutDate === 'string' && checkOutDate.includes('th') ? 
+                            checkOutDate : 
+                            format(new Date(checkOutDate), 'MMM dd, yyyy')) : 
+                          'N/A'}
                       </p>
                     </div>
                   </div>
@@ -214,7 +244,7 @@ export default function CheckoutPage({ params }) {
                     <User className="h-5 w-5 text-gray-400 mt-0.5 mr-3 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Guests</p>
-                      <p className="text-sm text-gray-600">{booking.guests} {booking.guests === 1 ? 'guest' : 'guests'}</p>
+                      <p className="text-sm text-gray-600">{guestCount} {guestCount === 1 ? 'guest' : 'guests'}</p>
                     </div>
                   </div>
                 </div>
@@ -222,22 +252,22 @@ export default function CheckoutPage({ params }) {
                 <div className="p-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-sm text-gray-600">
-                      ${booking.property.price_per_night} x {booking.total_days} {booking.total_days === 1 ? 'night' : 'nights'}
+                      ${pricePerNight} x {totalDays} {totalDays === 1 ? 'night' : 'nights'}
                     </span>
-                    <span className="text-sm text-gray-900">${booking.subtotal}</span>
+                    <span className="text-sm text-gray-900">${subtotal}</span>
                   </div>
                   
-                  {booking.cleaning_fee > 0 && (
+                  {parseFloat(cleaningFee) > 0 && (
                     <div className="flex justify-between mb-2">
                       <span className="text-sm text-gray-600">Cleaning fee</span>
-                      <span className="text-sm text-gray-900">${booking.cleaning_fee}</span>
+                      <span className="text-sm text-gray-900">${cleaningFee}</span>
                     </div>
                   )}
                   
-                  {booking.service_fee > 0 && (
+                  {parseFloat(serviceFee) > 0 && (
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm text-gray-600">Service fee</span>
-                      <span className="text-sm text-gray-900">${booking.service_fee}</span>
+                      <span className="text-sm text-gray-600">{booking?.taxes ? 'Taxes' : 'Service fee'}</span>
+                      <span className="text-sm text-gray-900">${serviceFee}</span>
                     </div>
                   )}
                   
@@ -245,7 +275,7 @@ export default function CheckoutPage({ params }) {
                   
                   <div className="flex justify-between font-semibold">
                     <span>Total</span>
-                    <span>${booking.total_price}</span>
+                    <span>${totalPrice}</span>
                   </div>
                 </div>
               </div>
